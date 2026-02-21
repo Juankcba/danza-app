@@ -48,3 +48,30 @@ export async function GET() {
         );
     }
 }
+
+// DELETE: Admin deletes an inquiry
+export async function DELETE(request: Request) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+
+        if (!id) {
+            return NextResponse.json(
+                { error: 'ID requerido' },
+                { status: 400 }
+            );
+        }
+
+        await prisma.contactInquiry.delete({
+            where: { id },
+        });
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        console.error('Delete inquiry error:', error);
+        return NextResponse.json(
+            { error: 'Error al eliminar consulta' },
+            { status: 500 }
+        );
+    }
+}

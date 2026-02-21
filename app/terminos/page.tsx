@@ -33,7 +33,7 @@ export default function TerminosPage() {
                     </h2>
                     <p>
                         Alma & Expresión es una escuela de danzas y ritmos caribeños ubicada
-                        en San Miguel de Tucumán, Argentina. A través de esta plataforma
+                        en Arguello, Córdoba, Argentina. A través de esta plataforma
                         ofrecemos:
                     </p>
                     <ul className="list-disc pl-6 mt-2 space-y-1">

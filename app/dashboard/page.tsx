@@ -75,6 +75,20 @@ function DashboardContent() {
         description: 'Tu inscripción ha sido confirmada.',
         color: 'success',
       });
+      // Verify payment status as fallback (in case webhook didn't fire)
+      fetch('/api/payments/verify', { method: 'POST' })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.verified > 0) {
+            // Refresh enrollments to show updated status
+            fetch('/api/enrollments')
+              .then((res) => res.json())
+              .then((data) => {
+                if (Array.isArray(data)) setEnrollments(data);
+              });
+          }
+        })
+        .catch(console.error);
     } else if (payment === 'failure') {
       addToast({
         title: 'Pago fallido',

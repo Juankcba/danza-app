@@ -35,7 +35,7 @@ const baseLayout = (content: string) => `
           <tr>
             <td style="padding:24px 32px; border-top:1px solid #2a2a2a; text-align:center;">
               <p style="margin:0 0 8px; color:#666; font-size:12px;">
-                Alma & Expresión · San Miguel de Tucumán, Argentina
+                Alma & Expresión · Arguello, Córdoba, Argentina
               </p>
               <a href="https://www.instagram.com/almaexpresion" style="color:#ec4899; font-size:12px; text-decoration:none;">
                 @almaexpresion

@@ -107,9 +107,10 @@ export function CoursesSection() {
                 </CardHeader>
 
                 <CardBody className="gap-3">
-                  <p className="text-sm text-foreground/60 line-clamp-2">
-                    {course.description}
-                  </p>
+                  <div
+                    className="text-sm text-foreground/60 line-clamp-2 prose prose-sm prose-invert max-w-none"
+                    dangerouslySetInnerHTML={{ __html: course.description }}
+                  />
 
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between text-foreground/70">

@@ -14,6 +14,12 @@ import {
 } from '@heroui/react';
 import { courseSchema } from '@/lib/validations';
 import { Header } from '@/components/header';
+import dynamic from 'next/dynamic';
+
+const RichTextEditor = dynamic(
+    () => import('@/components/rich-text-editor').then((mod) => mod.RichTextEditor),
+    { ssr: false, loading: () => <div className="h-[180px] rounded-xl bg-default-100/50 border border-default-200 animate-pulse" /> }
+);
 
 interface Instructor {
     id: string;
@@ -188,18 +194,13 @@ function NuevoCursoContent() {
 
                             {/* Description */}
                             <div>
-                                <label htmlFor="course-desc" className="block text-sm font-medium text-foreground/80 mb-2">
+                                <label className="block text-sm font-medium text-foreground/80 mb-2">
                                     Descripción
                                 </label>
-                                <textarea
-                                    id="course-desc"
-                                    name="description"
-                                    rows={3}
+                                <RichTextEditor
+                                    content={formik.values.description}
+                                    onChange={(html) => formik.setFieldValue('description', html)}
                                     placeholder="Describí el contenido del curso..."
-                                    value={formik.values.description}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                    className={`${inputClass(!!formik.touched.description && !!formik.errors.description)} resize-none`}
                                 />
                                 {formik.touched.description && formik.errors.description && (
                                     <p className="text-danger text-xs mt-1">{formik.errors.description}</p>

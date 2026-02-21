@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @source "../node_modules/@heroui/theme/dist/**/*.js";
 @plugin "../styles/hero.ts";
+@plugin "@tailwindcss/typography";
 
 @layer base {
   :root {

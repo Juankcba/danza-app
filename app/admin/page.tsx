@@ -55,7 +55,7 @@ interface Enrollment {
   createdAt: string;
   user: { name: string; email: string };
   course: { name: string };
-  payments: { amount: number; status: string }[];
+  payments: { amount: number; status: string; mpPaymentId?: string }[];
 }
 
 interface Instructor {
@@ -95,6 +95,8 @@ export default function AdminPage() {
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [loading, setLoading] = useState(true);
   const [newInstructor, setNewInstructor] = useState({ name: '', specialty: '', bio: '' });
+  const [instructorImage, setInstructorImage] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -191,6 +193,35 @@ export default function AdminPage() {
     }
   };
 
+  const handleInstructorImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImage(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64 = reader.result as string;
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: base64, folder: 'instructors' }),
+        });
+        if (res.ok) {
+          const { url } = await res.json();
+          setInstructorImage(url);
+          addToast({ title: 'Foto subida', color: 'success' });
+        } else {
+          addToast({ title: 'Error al subir foto', color: 'danger' });
+        }
+        setUploadingImage(false);
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      addToast({ title: 'Error al subir foto', color: 'danger' });
+      setUploadingImage(false);
+    }
+  };
+
   const handleCreateInstructor = async () => {
     if (!newInstructor.name || !newInstructor.specialty || !newInstructor.bio) {
       addToast({ title: 'Completá todos los campos', color: 'warning' });
@@ -200,11 +231,45 @@ export default function AdminPage() {
       const res = await fetch('/api/instructors', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newInstructor),
+        body: JSON.stringify({ ...newInstructor, image: instructorImage }),
       });
       if (res.ok) {
         addToast({ title: 'Instructor creado', color: 'success' });
         setNewInstructor({ name: '', specialty: '', bio: '' });
+        setInstructorImage(null);
+        fetchData();
+      } else {
+        const data = await res.json();
+        addToast({ title: 'Error', description: data.error, color: 'danger' });
+      }
+    } catch {
+      addToast({ title: 'Error de conexión', color: 'danger' });
+    }
+  };
+
+  const handleDeleteInquiry = async (id: string) => {
+    if (!confirm('¿Estás seguro de que querés eliminar esta consulta?')) return;
+    try {
+      const res = await fetch(`/api/contact?id=${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        addToast({ title: 'Consulta eliminada', color: 'success' });
+        fetchData();
+      }
+    } catch {
+      addToast({ title: 'Error al eliminar', color: 'danger' });
+    }
+  };
+
+  const handleMarkAsPaid = async (enrollmentId: string) => {
+    if (!confirm('¿Marcar esta inscripción como pagada (efectivo/transferencia)?')) return;
+    try {
+      const res = await fetch('/api/payments/mark-paid', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enrollmentId }),
+      });
+      if (res.ok) {
+        addToast({ title: 'Inscripción marcada como pagada', color: 'success' });
         fetchData();
       } else {
         const data = await res.json();
@@ -415,12 +480,13 @@ export default function AdminPage() {
                   ) : (
                     <Table aria-label="Inscripciones" isStriped classNames={tableClassNames}>
                       <TableHeader>
-                        <TableColumn width="18%">ALUMNO</TableColumn>
-                        <TableColumn width="22%">EMAIL</TableColumn>
-                        <TableColumn width="18%">CURSO</TableColumn>
-                        <TableColumn width="12%" align="center">ESTADO</TableColumn>
-                        <TableColumn width="15%" align="center">PAGO</TableColumn>
-                        <TableColumn width="15%" align="center">FECHA</TableColumn>
+                        <TableColumn width="16%">ALUMNO</TableColumn>
+                        <TableColumn width="20%">EMAIL</TableColumn>
+                        <TableColumn width="15%">CURSO</TableColumn>
+                        <TableColumn width="10%" align="center">ESTADO</TableColumn>
+                        <TableColumn width="14%" align="center">PAGO</TableColumn>
+                        <TableColumn width="12%" align="center">FECHA</TableColumn>
+                        <TableColumn width="13%" align="center">ACCIONES</TableColumn>
                       </TableHeader>
                       <TableBody>
                         {enrollments.map((enrollment) => (
@@ -460,7 +526,7 @@ export default function AdminPage() {
                                     }
                                   >
                                     {enrollment.payments.some(p => p.status === 'APPROVED')
-                                      ? `✅ $${enrollment.payments[0].amount.toLocaleString('es-AR')}`
+                                      ? `✅ $${enrollment.payments[0].amount.toLocaleString('es-AR')}${enrollment.payments.some(p => p.mpPaymentId === 'MANUAL') ? ' (Manual)' : ''}`
                                       : enrollment.payments[0].status === 'REJECTED'
                                         ? '❌ Rechazado'
                                         : `⏳ $${enrollment.payments[0].amount.toLocaleString('es-AR')}`
@@ -473,6 +539,21 @@ export default function AdminPage() {
                             </TableCell>
                             <TableCell className="text-foreground/70 text-center text-sm">
                               {new Date(enrollment.createdAt).toLocaleDateString('es-AR')}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex justify-center">
+                                {enrollment.status === 'PENDING' && !enrollment.payments?.some(p => p.status === 'APPROVED') && (
+                                  <Button
+                                    size="sm"
+                                    variant="flat"
+                                    color="success"
+                                    radius="full"
+                                    onPress={() => handleMarkAsPaid(enrollment.id)}
+                                  >
+                                    💵 Pagado
+                                  </Button>
+                                )}
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))}
@@ -504,7 +585,7 @@ export default function AdminPage() {
                   {/* Inline create form */}
                   <div className="px-6 py-4 bg-default-50/50">
                     <p className="text-sm font-medium text-foreground/80 mb-3">Agregar instructor</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                       <input
                         placeholder="Nombre"
                         value={newInstructor.name}
@@ -523,6 +604,31 @@ export default function AdminPage() {
                         onChange={(e) => setNewInstructor({ ...newInstructor, bio: e.target.value })}
                         className="px-4 py-2.5 rounded-xl bg-default-100/50 border border-default-200 text-foreground placeholder:text-foreground/40 outline-none focus:border-primary text-sm"
                       />
+                      <div className="flex items-center gap-2">
+                        {instructorImage ? (
+                          <div className="flex items-center gap-2">
+                            <img src={instructorImage} alt="Preview" className="w-10 h-10 rounded-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => setInstructorImage(null)}
+                              className="text-xs text-danger hover:underline cursor-pointer"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ) : (
+                          <label className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-default-100/50 border border-default-200 text-foreground/40 text-sm cursor-pointer hover:border-primary transition-colors w-full">
+                            {uploadingImage ? '⏳ Subiendo...' : '📷 Foto'}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleInstructorImageChange}
+                              className="hidden"
+                              disabled={uploadingImage}
+                            />
+                          </label>
+                        )}
+                      </div>
                     </div>
                     <button
                       type="button"
@@ -542,14 +648,22 @@ export default function AdminPage() {
                   ) : (
                     <Table aria-label="Instructores" isStriped classNames={tableClassNames}>
                       <TableHeader>
-                        <TableColumn width="25%">NOMBRE</TableColumn>
-                        <TableColumn width="20%" align="center">ESPECIALIDAD</TableColumn>
-                        <TableColumn width="40%">BIOGRAFÍA</TableColumn>
+                        <TableColumn width="10%">FOTO</TableColumn>
+                        <TableColumn width="20%">NOMBRE</TableColumn>
+                        <TableColumn width="18%" align="center">ESPECIALIDAD</TableColumn>
+                        <TableColumn width="37%">BIOGRAFÍA</TableColumn>
                         <TableColumn width="15%" align="center">CURSOS</TableColumn>
                       </TableHeader>
                       <TableBody>
                         {instructors.map((inst) => (
                           <TableRow key={inst.id}>
+                            <TableCell>
+                              {inst.image ? (
+                                <img src={inst.image} alt={inst.name} className="w-10 h-10 rounded-full object-cover" />
+                              ) : (
+                                <div className="w-10 h-10 rounded-full bg-default-200 flex items-center justify-center text-sm">💃</div>
+                              )}
+                            </TableCell>
                             <TableCell className="font-medium">{inst.name}</TableCell>
                             <TableCell>
                               <div className="flex justify-center">
@@ -602,11 +716,12 @@ export default function AdminPage() {
                   ) : (
                     <Table aria-label="Consultas" isStriped classNames={tableClassNames}>
                       <TableHeader>
-                        <TableColumn width="15%">NOMBRE</TableColumn>
-                        <TableColumn width="20%">EMAIL</TableColumn>
-                        <TableColumn width="35%">MENSAJE</TableColumn>
-                        <TableColumn width="15%" align="center">FECHA</TableColumn>
-                        <TableColumn width="15%" align="center">ESTADO</TableColumn>
+                        <TableColumn width="13%">NOMBRE</TableColumn>
+                        <TableColumn width="18%">EMAIL</TableColumn>
+                        <TableColumn width="32%">MENSAJE</TableColumn>
+                        <TableColumn width="12%" align="center">FECHA</TableColumn>
+                        <TableColumn width="12%" align="center">ESTADO</TableColumn>
+                        <TableColumn width="13%" align="center">ACCIONES</TableColumn>
                       </TableHeader>
                       <TableBody>
                         {inquiries.map((inquiry) => (
@@ -624,6 +739,20 @@ export default function AdminPage() {
                                 <Chip size="sm" variant="flat" color={inquiry.read ? 'default' : 'warning'}>
                                   {inquiry.read ? 'Leído' : 'Nuevo'}
                                 </Chip>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex justify-center">
+                                <Button
+                                  size="sm"
+                                  variant="flat"
+                                  color="danger"
+                                  radius="full"
+                                  isIconOnly
+                                  onPress={() => handleDeleteInquiry(inquiry.id)}
+                                >
+                                  🗑️
+                                </Button>
                               </div>
                             </TableCell>
                           </TableRow>
