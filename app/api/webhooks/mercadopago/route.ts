@@ -34,14 +34,37 @@ export async function POST(request: Request) {
                 status = 'REJECTED';
             }
 
-            // Update payment record
-            await prisma.payment.updateMany({
-                where: { enrollmentId },
-                data: {
-                    status,
-                    mpPaymentId: String(paymentId),
-                },
-            });
+            // Update the specific payment record that matches this preference
+            const preferenceId = (mpPaymentData as any).preference_id;
+
+            if (preferenceId) {
+                // Update by preference ID for precise tracking
+                await prisma.payment.updateMany({
+                    where: {
+                        enrollmentId,
+                        mpPreferenceId: preferenceId,
+                    },
+                    data: {
+                        status,
+                        mpPaymentId: String(paymentId),
+                    },
+                });
+            } else {
+                // Fallback: update the latest pending payment for this enrollment
+                const latestPayment = await prisma.payment.findFirst({
+                    where: { enrollmentId, status: 'PENDING' },
+                    orderBy: { createdAt: 'desc' },
+                });
+                if (latestPayment) {
+                    await prisma.payment.update({
+                        where: { id: latestPayment.id },
+                        data: {
+                            status,
+                            mpPaymentId: String(paymentId),
+                        },
+                    });
+                }
+            }
 
             // If approved, activate enrollment and send confirmation email
             if (status === 'APPROVED') {

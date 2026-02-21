@@ -21,6 +21,12 @@ import {
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 
+interface Payment {
+  status: string;
+  amount: number;
+  createdAt: string;
+}
+
 interface Enrollment {
   id: string;
   status: string;
@@ -31,10 +37,7 @@ interface Enrollment {
     price: number;
     instructor: { name: string };
   };
-  payment?: {
-    status: string;
-    amount: number;
-  };
+  payments: Payment[];
 }
 
 const statusColors: Record<string, 'warning' | 'success' | 'danger' | 'default'> = {
@@ -204,82 +207,126 @@ function DashboardContent() {
                   </button>
                 </div>
               ) : (
-                <Table aria-label="Mis inscripciones" removeWrapper>
+                <Table
+                  aria-label="Mis inscripciones"
+                  removeWrapper
+                  isStriped
+                  classNames={{
+                    th: 'bg-default-100/50 text-foreground/60 text-xs uppercase tracking-wider py-3',
+                    td: 'py-4',
+                    tr: 'hover:bg-default-100/30 transition-colors',
+                  }}
+                >
                   <TableHeader>
                     <TableColumn>CURSO</TableColumn>
                     <TableColumn>HORARIO</TableColumn>
                     <TableColumn>PROFESORA</TableColumn>
-                    <TableColumn>ESTADO</TableColumn>
-                    <TableColumn>PAGO</TableColumn>
-                    <TableColumn>ACCIONES</TableColumn>
+                    <TableColumn align="center">ESTADO</TableColumn>
+                    <TableColumn align="center">PAGO</TableColumn>
+                    <TableColumn align="center">ACCIONES</TableColumn>
                   </TableHeader>
                   <TableBody>
                     {enrollments.map((enrollment) => (
                       <TableRow key={enrollment.id}>
-                        <TableCell className="font-medium">
-                          {enrollment.course.name}
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="font-semibold">{enrollment.course.name}</span>
+                            <span className="text-xs text-foreground/40">
+                              ${enrollment.course.price.toLocaleString('es-AR')}
+                            </span>
+                          </div>
                         </TableCell>
-                        <TableCell className="text-foreground/70">
-                          {enrollment.course.schedule}
+                        <TableCell>
+                          <span className="text-sm text-foreground/70">
+                            📅 {enrollment.course.schedule}
+                          </span>
                         </TableCell>
-                        <TableCell className="text-foreground/70">
-                          {enrollment.course.instructor.name}
+                        <TableCell>
+                          <span className="text-sm text-foreground/70">
+                            👩‍🏫 {enrollment.course.instructor.name}
+                          </span>
                         </TableCell>
                         <TableCell>
                           <Chip
                             color={statusColors[enrollment.status] || 'default'}
                             variant="flat"
                             size="sm"
+                            className="font-medium"
                           >
                             {statusLabels[enrollment.status] || enrollment.status}
                           </Chip>
                         </TableCell>
                         <TableCell>
-                          {enrollment.payment ? (
-                            <Chip
-                              color={
-                                enrollment.payment.status === 'APPROVED'
-                                  ? 'success'
-                                  : 'warning'
-                              }
-                              variant="flat"
-                              size="sm"
-                            >
-                              ${enrollment.payment.amount.toLocaleString('es-AR')}
-                            </Chip>
-                          ) : (
-                            <span className="text-foreground/40 text-sm">
-                              Sin pago
-                            </span>
-                          )}
+                          {(() => {
+                            const latestPayment = enrollment.payments?.[0];
+                            const hasApproved = enrollment.payments?.some(p => p.status === 'APPROVED');
+                            if (hasApproved) {
+                              const approved = enrollment.payments.find(p => p.status === 'APPROVED')!;
+                              return (
+                                <Chip color="success" variant="flat" size="sm" className="font-medium">
+                                  ✅ ${approved.amount.toLocaleString('es-AR')}
+                                </Chip>
+                              );
+                            } else if (latestPayment) {
+                              return (
+                                <Chip color="warning" variant="flat" size="sm" className="font-medium">
+                                  ⏳ Pendiente
+                                </Chip>
+                              );
+                            } else {
+                              return (
+                                <Chip color="default" variant="flat" size="sm">
+                                  Sin pago
+                                </Chip>
+                              );
+                            }
+                          })()}
                         </TableCell>
                         <TableCell>
-                          {enrollment.status === 'PENDING' && !enrollment.payment && (
+                          {enrollment.status === 'PENDING' && !enrollment.payments?.some(p => p.status === 'APPROVED') && (
                             <Button
                               size="sm"
-                              color="primary"
-                              variant="flat"
+                              radius="full"
+                              className="font-semibold text-white bg-gradient-to-r from-pink-500 to-pink-600 shadow-md shadow-pink-500/20 hover:shadow-pink-500/40 transition-all"
                               onPress={async () => {
-                                const res = await fetch(
-                                  '/api/payments/create-preference',
-                                  {
-                                    method: 'POST',
-                                    headers: {
-                                      'Content-Type': 'application/json',
-                                    },
-                                    body: JSON.stringify({
-                                      enrollmentId: enrollment.id,
-                                    }),
+                                try {
+                                  const res = await fetch(
+                                    '/api/payments/create-preference',
+                                    {
+                                      method: 'POST',
+                                      headers: {
+                                        'Content-Type': 'application/json',
+                                      },
+                                      body: JSON.stringify({
+                                        enrollmentId: enrollment.id,
+                                      }),
+                                    }
+                                  );
+                                  if (res.ok) {
+                                    const { initPoint } = await res.json();
+                                    if (initPoint) window.location.href = initPoint;
+                                  } else {
+                                    addToast({
+                                      title: 'Error al crear pago',
+                                      description: 'Intentá de nuevo más tarde.',
+                                      color: 'danger',
+                                    });
                                   }
-                                );
-                                if (res.ok) {
-                                  const { initPoint } = await res.json();
-                                  if (initPoint) window.location.href = initPoint;
+                                } catch {
+                                  addToast({
+                                    title: 'Error de conexión',
+                                    color: 'danger',
+                                  });
                                 }
                               }}
                             >
-                              Pagar
+                              💳 Pagar
                             </Button>
+                          )}
+                          {enrollment.status === 'ACTIVE' && (
+                            <Chip color="success" variant="flat" size="sm" className="font-medium">
+                              ✓ Inscripto
+                            </Chip>
                           )}
                         </TableCell>
                       </TableRow>

@@ -19,7 +19,7 @@ export async function GET() {
             include: {
                 course: { include: { instructor: true } },
                 user: { select: { id: true, name: true, email: true } },
-                payment: true,
+                payments: { orderBy: { createdAt: 'desc' } },
             },
             orderBy: { createdAt: 'desc' },
         });

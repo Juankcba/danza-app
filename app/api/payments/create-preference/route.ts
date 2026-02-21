@@ -25,7 +25,13 @@ export async function POST(request: Request) {
             );
         }
 
-        const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL
+            || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
+            || process.env.NEXTAUTH_URL
+            || 'http://localhost:3000';
+
+        const isLocalhost = baseUrl.includes('localhost');
+        const isSandbox = process.env.MP_SANDBOX === 'true';
 
         const preference = await mpPreference.create({
             body: {
@@ -46,13 +52,13 @@ export async function POST(request: Request) {
                     failure: `${baseUrl}/dashboard?payment=failure`,
                     pending: `${baseUrl}/dashboard?payment=pending`,
                 },
-                auto_return: 'approved',
+                ...(isLocalhost ? {} : { auto_return: 'approved' as const }),
                 external_reference: enrollmentId,
-                notification_url: `${baseUrl}/api/webhooks/mercadopago`,
+                notification_url: isLocalhost ? undefined : `${baseUrl}/api/webhooks/mercadopago`,
             },
         });
 
-        // Save preference in payment record
+        // Create payment record for this attempt
         await prisma.payment.create({
             data: {
                 userId,
@@ -63,9 +69,15 @@ export async function POST(request: Request) {
             },
         });
 
+        // Use sandbox_init_point for testing, init_point for production
+        const initPoint = isSandbox
+            ? preference.sandbox_init_point
+            : preference.init_point;
+
         return NextResponse.json({
             preferenceId: preference.id,
-            initPoint: preference.init_point,
+            initPoint,
+            sandbox: isSandbox,
         });
     } catch (error) {
         console.error('Create preference error:', error);
