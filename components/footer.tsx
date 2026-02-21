@@ -39,7 +39,7 @@ export function Footer() {
             <h4 className="font-semibold mb-4">Redes</h4>
             <div className="flex flex-col gap-2">
               <Link
-                href="https://instagram.com/almayexpresion"
+                href="https://www.instagram.com/almaexpresion"
                 isExternal
                 className="text-foreground/60 text-sm hover:text-primary"
               >

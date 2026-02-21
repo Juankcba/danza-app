@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import {
   Navbar,
   NavbarBrand,
@@ -49,8 +50,15 @@ export function Header() {
           className="sm:hidden"
         />
         <NavbarBrand>
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-xl font-bold gradient-text">
+          <Link href="/" className="flex items-center gap-3">
+            <Image
+              src="/logo.png"
+              alt="Alma & Expresión"
+              width={36}
+              height={41}
+              className="rounded-full"
+            />
+            <span className="text-lg font-bold gradient-text hidden sm:inline">
               Alma & Expresión
             </span>
           </Link>
@@ -84,36 +92,41 @@ export function Header() {
                 src={session.user.image || undefined}
               />
             </DropdownTrigger>
-            <DropdownMenu aria-label="Menú de usuario">
-              <DropdownItem
-                key="profile"
-                className="h-14 gap-2"
-                textValue="Perfil"
-              >
-                <p className="font-semibold">{session.user.name}</p>
-                <p className="text-sm text-default-500">{session.user.email}</p>
-              </DropdownItem>
-              <DropdownItem
-                key="dashboard"
-                onPress={() => router.push('/dashboard')}
-              >
-                Mi Panel
-              </DropdownItem>
-              {(session.user as any).role === 'ADMIN' && (
-                <DropdownItem
-                  key="admin"
-                  onPress={() => router.push('/admin')}
-                >
-                  Administración
-                </DropdownItem>
-              )}
-              <DropdownItem
-                key="logout"
-                color="danger"
-                onPress={() => signOut()}
-              >
-                Cerrar Sesión
-              </DropdownItem>
+            <DropdownMenu aria-label="Menú de usuario" items={[
+              { key: 'profile' },
+              { key: 'dashboard' },
+              ...((session.user as any).role === 'ADMIN' ? [{ key: 'admin' }] : []),
+              { key: 'logout' },
+            ]}>
+              {(item) => {
+                if (item.key === 'profile') {
+                  return (
+                    <DropdownItem key="profile" className="h-14 gap-2" textValue="Perfil">
+                      <p className="font-semibold">{session.user?.name}</p>
+                      <p className="text-sm text-default-500">{session.user?.email}</p>
+                    </DropdownItem>
+                  );
+                }
+                if (item.key === 'dashboard') {
+                  return (
+                    <DropdownItem key="dashboard" onPress={() => router.push('/dashboard')}>
+                      Mi Panel
+                    </DropdownItem>
+                  );
+                }
+                if (item.key === 'admin') {
+                  return (
+                    <DropdownItem key="admin" onPress={() => router.push('/admin')}>
+                      Administración
+                    </DropdownItem>
+                  );
+                }
+                return (
+                  <DropdownItem key="logout" color="danger" onPress={() => signOut()}>
+                    Cerrar Sesión
+                  </DropdownItem>
+                );
+              }}
             </DropdownMenu>
           </Dropdown>
         ) : (
@@ -122,9 +135,10 @@ export function Header() {
               as={Link}
               href="/login"
               color="primary"
-              variant="shadow"
+              variant="flat"
               size="sm"
-              className="font-semibold"
+              radius="full"
+              className="font-semibold bg-gradient-to-r from-pink-500 to-pink-600 text-white"
             >
               Ingresar
             </Button>

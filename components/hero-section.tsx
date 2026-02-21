@@ -1,6 +1,7 @@
 'use client';
 
 import { Button, Link } from '@heroui/react';
+import Image from 'next/image';
 
 export function HeroSection() {
   return (
@@ -14,6 +15,18 @@ export function HeroSection() {
 
       {/* Content */}
       <div className="relative z-10 text-center max-w-4xl mx-auto px-6 animate-fade-in">
+        {/* Logo */}
+        <div className="flex justify-center mb-8">
+          <Image
+            src="/logo.png"
+            alt="Alma & Expresión"
+            width={160}
+            height={182}
+            className="drop-shadow-2xl"
+            priority
+          />
+        </div>
+
         <div className="inline-block mb-6">
           <span className="text-sm font-medium text-primary bg-primary/10 px-4 py-2 rounded-full border border-primary/20">
             ✨ 14 años enseñando ritmos caribeños
@@ -39,18 +52,21 @@ export function HeroSection() {
             as={Link}
             href="#cursos"
             color="primary"
-            variant="shadow"
+            variant="flat"
             size="lg"
-            className="font-bold text-lg px-8 animate-pulse-glow"
+            radius="full"
+            className="font-bold text-base px-10 bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/25 hover:shadow-pink-500/40 transition-shadow"
           >
-            Ver Cursos
+            🔥 Ver Cursos
           </Button>
           <Button
             as={Link}
             href="#contacto"
-            variant="bordered"
+            variant="ghost"
+            color="primary"
             size="lg"
-            className="font-semibold text-lg px-8 border-primary/50 text-primary hover:bg-primary/10"
+            radius="full"
+            className="font-semibold text-base px-10"
           >
             Contactanos
           </Button>

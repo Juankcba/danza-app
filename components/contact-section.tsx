@@ -1,10 +1,34 @@
 'use client';
 
-import { Button, Input, Textarea, Chip, addToast } from '@heroui/react';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { Button, Chip, Link, addToast } from '@heroui/react';
+import { useFormik } from 'formik';
 import { contactSchema } from '@/lib/validations';
 
 export function ContactSection() {
+  const formik = useFormik({
+    initialValues: { name: '', email: '', message: '' },
+    validationSchema: contactSchema,
+    onSubmit: async (values, { resetForm, setSubmitting }) => {
+      try {
+        console.log('Contact form:', values);
+        addToast({
+          title: '¡Mensaje enviado!',
+          description: 'Nos pondremos en contacto pronto.',
+          color: 'success',
+        });
+        resetForm();
+      } catch {
+        addToast({
+          title: 'Error',
+          description: 'No se pudo enviar el mensaje.',
+          color: 'danger',
+        });
+      } finally {
+        setSubmitting(false);
+      }
+    },
+  });
+
   return (
     <section id="contacto" className="py-24 px-6 bg-default-50/50">
       <div className="max-w-7xl mx-auto">
@@ -22,24 +46,28 @@ export function ContactSection() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-5xl mx-auto">
           {/* Contact info */}
-          <div className="space-y-8">
+          <div className="space-y-6">
             <div className="glass rounded-xl p-6 border border-default-100">
-              <h3 className="text-lg font-bold mb-4">📍 Ubicación</h3>
+              <h3 className="text-lg font-bold mb-3">📍 Ubicación</h3>
               <p className="text-foreground/70">
                 San Miguel de Tucumán, Argentina
               </p>
             </div>
             <div className="glass rounded-xl p-6 border border-default-100">
-              <h3 className="text-lg font-bold mb-4">📱 Redes Sociales</h3>
+              <h3 className="text-lg font-bold mb-3">📱 Redes Sociales</h3>
               <div className="space-y-2">
-                <p className="text-foreground/70">
-                  Instagram: @almayexpresion
-                </p>
-                <p className="text-foreground/70">Facebook: Alma & Expresión</p>
+                <Link
+                  href="https://www.instagram.com/almaexpresion"
+                  isExternal
+                  className="text-foreground/70 hover:text-primary flex items-center gap-2"
+                >
+                  📸 @almaexpresion
+                </Link>
+                <p className="text-foreground/70">📘 Alma & Expresión</p>
               </div>
             </div>
             <div className="glass rounded-xl p-6 border border-default-100">
-              <h3 className="text-lg font-bold mb-4">🕐 Horarios</h3>
+              <h3 className="text-lg font-bold mb-3">🕐 Horarios</h3>
               <p className="text-foreground/70">
                 Lunes a Viernes: 17:00 - 22:00
               </p>
@@ -47,97 +75,106 @@ export function ContactSection() {
             </div>
           </div>
 
-          {/* Contact form with Formik + Yup */}
+          {/* Contact form */}
           <div className="glass rounded-xl p-8 border border-default-100">
-            <Formik
-              initialValues={{ name: '', email: '', message: '' }}
-              validationSchema={contactSchema}
-              onSubmit={async (values, { resetForm, setSubmitting }) => {
-                try {
-                  // For now, just log. Can add email API later.
-                  console.log('Contact form:', values);
-                  addToast({
-                    title: '¡Mensaje enviado!',
-                    description: 'Nos pondremos en contacto pronto.',
-                    color: 'success',
-                  });
-                  resetForm();
-                } catch {
-                  addToast({
-                    title: 'Error',
-                    description: 'No se pudo enviar el mensaje.',
-                    color: 'danger',
-                  });
-                } finally {
-                  setSubmitting(false);
-                }
-              }}
-            >
-              {({ isSubmitting, errors, touched }) => (
-                <Form className="space-y-5">
-                  <div>
-                    <Field
-                      as={Input}
-                      name="name"
-                      label="Nombre"
-                      placeholder="Tu nombre"
-                      variant="bordered"
-                      isInvalid={touched.name && !!errors.name}
-                    />
-                    <ErrorMessage
-                      name="name"
-                      component="p"
-                      className="text-danger text-xs mt-1"
-                    />
-                  </div>
+            <h3 className="text-lg font-bold mb-6">Escribinos ✉️</h3>
+            <form onSubmit={formik.handleSubmit} className="space-y-5">
+              {/* Name field */}
+              <div>
+                <label
+                  htmlFor="contact-name"
+                  className="block text-sm font-medium text-foreground/80 mb-2"
+                >
+                  Nombre
+                </label>
+                <input
+                  id="contact-name"
+                  name="name"
+                  type="text"
+                  placeholder="Tu nombre"
+                  value={formik.values.name}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  className={`w-full px-4 py-3 rounded-xl bg-default-100/50 border text-foreground placeholder:text-foreground/40 outline-none transition-colors focus:border-primary ${formik.touched.name && formik.errors.name
+                      ? 'border-danger'
+                      : 'border-default-200'
+                    }`}
+                />
+                {formik.touched.name && formik.errors.name && (
+                  <p className="text-danger text-xs mt-1">
+                    {formik.errors.name}
+                  </p>
+                )}
+              </div>
 
-                  <div>
-                    <Field
-                      as={Input}
-                      name="email"
-                      type="email"
-                      label="Email"
-                      placeholder="tu@email.com"
-                      variant="bordered"
-                      isInvalid={touched.email && !!errors.email}
-                    />
-                    <ErrorMessage
-                      name="email"
-                      component="p"
-                      className="text-danger text-xs mt-1"
-                    />
-                  </div>
+              {/* Email field */}
+              <div>
+                <label
+                  htmlFor="contact-email"
+                  className="block text-sm font-medium text-foreground/80 mb-2"
+                >
+                  Email
+                </label>
+                <input
+                  id="contact-email"
+                  name="email"
+                  type="email"
+                  placeholder="tu@email.com"
+                  value={formik.values.email}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  className={`w-full px-4 py-3 rounded-xl bg-default-100/50 border text-foreground placeholder:text-foreground/40 outline-none transition-colors focus:border-primary ${formik.touched.email && formik.errors.email
+                      ? 'border-danger'
+                      : 'border-default-200'
+                    }`}
+                />
+                {formik.touched.email && formik.errors.email && (
+                  <p className="text-danger text-xs mt-1">
+                    {formik.errors.email}
+                  </p>
+                )}
+              </div>
 
-                  <div>
-                    <Field
-                      as={Textarea}
-                      name="message"
-                      label="Mensaje"
-                      placeholder="Escribí tu consulta..."
-                      variant="bordered"
-                      minRows={4}
-                      isInvalid={touched.message && !!errors.message}
-                    />
-                    <ErrorMessage
-                      name="message"
-                      component="p"
-                      className="text-danger text-xs mt-1"
-                    />
-                  </div>
+              {/* Message field */}
+              <div>
+                <label
+                  htmlFor="contact-message"
+                  className="block text-sm font-medium text-foreground/80 mb-2"
+                >
+                  Mensaje
+                </label>
+                <textarea
+                  id="contact-message"
+                  name="message"
+                  placeholder="Escribí tu consulta..."
+                  rows={4}
+                  value={formik.values.message}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  className={`w-full px-4 py-3 rounded-xl bg-default-100/50 border text-foreground placeholder:text-foreground/40 outline-none transition-colors focus:border-primary resize-none ${formik.touched.message && formik.errors.message
+                      ? 'border-danger'
+                      : 'border-default-200'
+                    }`}
+                />
+                {formik.touched.message && formik.errors.message && (
+                  <p className="text-danger text-xs mt-1">
+                    {formik.errors.message}
+                  </p>
+                )}
+              </div>
 
-                  <Button
-                    type="submit"
-                    color="primary"
-                    variant="shadow"
-                    fullWidth
-                    isLoading={isSubmitting}
-                    className="font-semibold"
-                  >
-                    Enviar Mensaje
-                  </Button>
-                </Form>
-              )}
-            </Formik>
+              <Button
+                type="submit"
+                color="primary"
+                variant="flat"
+                fullWidth
+                radius="full"
+                isLoading={formik.isSubmitting}
+                className="font-semibold bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/25 hover:shadow-pink-500/40 transition-shadow"
+              >
+                Enviar Mensaje
+              </Button>
+            </form>
           </div>
         </div>
       </div>
