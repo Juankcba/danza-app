@@ -58,10 +58,20 @@ export function Footer() {
 
         <Divider className="my-8" />
 
-        <p className="text-center text-foreground/40 text-sm">
-          © {new Date().getFullYear()} Alma & Expresión. Todos los derechos
-          reservados.
-        </p>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-foreground/40 text-sm">
+            © {new Date().getFullYear()} Alma & Expresión. Todos los derechos
+            reservados.
+          </p>
+          <div className="flex gap-4">
+            <Link href="/privacidad" className="text-foreground/40 text-xs hover:text-primary">
+              Política de Privacidad
+            </Link>
+            <Link href="/terminos" className="text-foreground/40 text-xs hover:text-primary">
+              Términos y Condiciones
+            </Link>
+          </div>
+        </div>
       </div>
     </footer>
   );
