@@ -101,7 +101,7 @@ export function Header() {
               {(item) => {
                 if (item.key === 'profile') {
                   return (
-                    <DropdownItem key="profile" className="h-14 gap-2" textValue="Perfil">
+                    <DropdownItem key="profile" className="h-14 gap-2 cursor-pointer" textValue="Perfil">
                       <p className="font-semibold">{session.user?.name}</p>
                       <p className="text-sm text-default-500">{session.user?.email}</p>
                     </DropdownItem>
@@ -109,20 +109,20 @@ export function Header() {
                 }
                 if (item.key === 'dashboard') {
                   return (
-                    <DropdownItem key="dashboard" onPress={() => router.push('/dashboard')}>
+                    <DropdownItem key="dashboard" className="cursor-pointer" onPress={() => router.push('/dashboard')}>
                       Mi Panel
                     </DropdownItem>
                   );
                 }
                 if (item.key === 'admin') {
                   return (
-                    <DropdownItem key="admin" onPress={() => router.push('/admin')}>
+                    <DropdownItem key="admin" className="cursor-pointer" onPress={() => router.push('/admin')}>
                       Administración
                     </DropdownItem>
                   );
                 }
                 return (
-                  <DropdownItem key="logout" color="danger" onPress={() => signOut()}>
+                  <DropdownItem key="logout" className="cursor-pointer" color="danger" onPress={() => signOut()}>
                     Cerrar Sesión
                   </DropdownItem>
                 );
