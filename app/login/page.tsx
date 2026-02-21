@@ -1,19 +1,48 @@
 'use client';
 
-import { Card, CardBody, Button, Input, Link, Divider } from '@heroui/react';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { Card, CardBody, Button, Link, Divider } from '@heroui/react';
+import { useFormik } from 'formik';
 import { loginSchema } from '@/lib/validations';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+const inputClass = (hasError: boolean) =>
+  `w-full px-4 py-3 rounded-xl bg-default-100/50 border text-foreground placeholder:text-foreground/40 outline-none transition-colors focus:border-primary ${hasError ? 'border-danger' : 'border-default-200'
+  }`;
+
 export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState('');
 
+  const formik = useFormik({
+    initialValues: { email: '', password: '' },
+    validationSchema: loginSchema,
+    onSubmit: async (values, { setSubmitting }) => {
+      setError('');
+      try {
+        const result = await signIn('credentials', {
+          email: values.email,
+          password: values.password,
+          redirect: false,
+        });
+
+        if (result?.error) {
+          setError('Email o contraseña incorrectos');
+        } else {
+          router.push('/dashboard');
+          router.refresh();
+        }
+      } catch {
+        setError('Error de conexión');
+      } finally {
+        setSubmitting(false);
+      }
+    },
+  });
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-primary/10 via-background to-secondary/5">
-      {/* Background effects */}
       <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
       <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/10 rounded-full blur-3xl" />
 
@@ -34,95 +63,70 @@ export default function LoginPage() {
             </div>
           )}
 
-          <Formik
-            initialValues={{ email: '', password: '' }}
-            validationSchema={loginSchema}
-            onSubmit={async (values, { setSubmitting }) => {
-              setError('');
-              try {
-                const result = await signIn('credentials', {
-                  email: values.email,
-                  password: values.password,
-                  redirect: false,
-                });
+          <form onSubmit={formik.handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="login-email" className="block text-sm font-medium text-foreground/80 mb-2">
+                Email
+              </label>
+              <input
+                id="login-email"
+                name="email"
+                type="email"
+                placeholder="tu@email.com"
+                value={formik.values.email}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                className={inputClass(!!formik.touched.email && !!formik.errors.email)}
+              />
+              {formik.touched.email && formik.errors.email && (
+                <p className="text-danger text-xs mt-1">{formik.errors.email}</p>
+              )}
+            </div>
 
-                if (result?.error) {
-                  setError('Email o contraseña incorrectos');
-                } else {
-                  router.push('/dashboard');
-                  router.refresh();
-                }
-              } catch {
-                setError('Error de conexión');
-              } finally {
-                setSubmitting(false);
-              }
-            }}
-          >
-            {({ isSubmitting, errors, touched }) => (
-              <Form className="space-y-4">
-                <div>
-                  <Field
-                    as={Input}
-                    name="email"
-                    type="email"
-                    label="Email"
-                    placeholder="tu@email.com"
-                    variant="bordered"
-                    isInvalid={touched.email && !!errors.email}
-                  />
-                  <ErrorMessage
-                    name="email"
-                    component="p"
-                    className="text-danger text-xs mt-1"
-                  />
-                </div>
+            <div>
+              <label htmlFor="login-password" className="block text-sm font-medium text-foreground/80 mb-2">
+                Contraseña
+              </label>
+              <input
+                id="login-password"
+                name="password"
+                type="password"
+                placeholder="Tu contraseña"
+                value={formik.values.password}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                className={inputClass(!!formik.touched.password && !!formik.errors.password)}
+              />
+              {formik.touched.password && formik.errors.password && (
+                <p className="text-danger text-xs mt-1">{formik.errors.password}</p>
+              )}
+            </div>
 
-                <div>
-                  <Field
-                    as={Input}
-                    name="password"
-                    type="password"
-                    label="Contraseña"
-                    placeholder="Tu contraseña"
-                    variant="bordered"
-                    isInvalid={touched.password && !!errors.password}
-                  />
-                  <ErrorMessage
-                    name="password"
-                    component="p"
-                    className="text-danger text-xs mt-1"
-                  />
-                </div>
+            <div className="text-right">
+              <Link href="/recuperar-password" className="text-sm text-primary">
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
 
-                <div className="text-right">
-                  <Link
-                    href="/recuperar-password"
-                    className="text-sm text-primary"
-                  >
-                    ¿Olvidaste tu contraseña?
-                  </Link>
-                </div>
-
-                <Button
-                  type="submit"
-                  color="primary"
-                  variant="shadow"
-                  fullWidth
-                  isLoading={isSubmitting}
-                  className="font-semibold"
-                >
-                  Ingresar
-                </Button>
-              </Form>
-            )}
-          </Formik>
+            <Button
+              type="submit"
+              color="primary"
+              variant="flat"
+              fullWidth
+              radius="full"
+              isLoading={formik.isSubmitting}
+              className="font-semibold bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/25"
+            >
+              Ingresar
+            </Button>
+          </form>
 
           <Divider />
 
           <Button
             variant="bordered"
             fullWidth
+            radius="full"
             className="border-default-200"
             onPress={() => signIn('google', { callbackUrl: '/dashboard' })}
             startContent={

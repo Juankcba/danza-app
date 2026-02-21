@@ -136,7 +136,6 @@ export function Header() {
               href="/login"
               color="primary"
               variant="flat"
-              size="sm"
               radius="full"
               className="font-semibold bg-gradient-to-r from-pink-500 to-pink-600 text-white"
             >

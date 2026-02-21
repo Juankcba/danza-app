@@ -1,15 +1,65 @@
 'use client';
 
-import { Card, CardBody, Button, Input, Link, Divider } from '@heroui/react';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { Card, CardBody, Button, Link, Divider } from '@heroui/react';
+import { useFormik } from 'formik';
 import { registerSchema } from '@/lib/validations';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+const inputClass = (hasError: boolean) =>
+  `w-full px-4 py-3 rounded-xl bg-default-100/50 border text-foreground placeholder:text-foreground/40 outline-none transition-colors focus:border-primary ${hasError ? 'border-danger' : 'border-default-200'
+  }`;
+
 export default function RegistroPage() {
   const router = useRouter();
   const [error, setError] = useState('');
+
+  const formik = useFormik({
+    initialValues: {
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
+    validationSchema: registerSchema,
+    onSubmit: async (values, { setSubmitting }) => {
+      setError('');
+      try {
+        const res = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: values.name,
+            email: values.email,
+            password: values.password,
+          }),
+        });
+
+        if (!res.ok) {
+          const data = await res.json();
+          setError(data.error || 'Error al registrarse');
+          return;
+        }
+
+        // Auto-login after registration
+        const result = await signIn('credentials', {
+          email: values.email,
+          password: values.password,
+          redirect: false,
+        });
+
+        if (result?.ok) {
+          router.push('/dashboard');
+          router.refresh();
+        }
+      } catch {
+        setError('Error de conexión');
+      } finally {
+        setSubmitting(false);
+      }
+    },
+  });
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-gradient-to-br from-primary/10 via-background to-secondary/5">
@@ -33,141 +83,102 @@ export default function RegistroPage() {
             </div>
           )}
 
-          <Formik
-            initialValues={{
-              name: '',
-              email: '',
-              password: '',
-              confirmPassword: '',
-            }}
-            validationSchema={registerSchema}
-            onSubmit={async (values, { setSubmitting }) => {
-              setError('');
-              try {
-                const res = await fetch('/api/register', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    name: values.name,
-                    email: values.email,
-                    password: values.password,
-                  }),
-                });
+          <form onSubmit={formik.handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="reg-name" className="block text-sm font-medium text-foreground/80 mb-2">
+                Nombre completo
+              </label>
+              <input
+                id="reg-name"
+                name="name"
+                type="text"
+                placeholder="Tu nombre"
+                value={formik.values.name}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                className={inputClass(!!formik.touched.name && !!formik.errors.name)}
+              />
+              {formik.touched.name && formik.errors.name && (
+                <p className="text-danger text-xs mt-1">{formik.errors.name}</p>
+              )}
+            </div>
 
-                if (!res.ok) {
-                  const data = await res.json();
-                  setError(data.error || 'Error al registrarse');
-                  return;
-                }
+            <div>
+              <label htmlFor="reg-email" className="block text-sm font-medium text-foreground/80 mb-2">
+                Email
+              </label>
+              <input
+                id="reg-email"
+                name="email"
+                type="email"
+                placeholder="tu@email.com"
+                value={formik.values.email}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                className={inputClass(!!formik.touched.email && !!formik.errors.email)}
+              />
+              {formik.touched.email && formik.errors.email && (
+                <p className="text-danger text-xs mt-1">{formik.errors.email}</p>
+              )}
+            </div>
 
-                // Auto-login after registration
-                const result = await signIn('credentials', {
-                  email: values.email,
-                  password: values.password,
-                  redirect: false,
-                });
+            <div>
+              <label htmlFor="reg-password" className="block text-sm font-medium text-foreground/80 mb-2">
+                Contraseña
+              </label>
+              <input
+                id="reg-password"
+                name="password"
+                type="password"
+                placeholder="Mínimo 6 caracteres"
+                value={formik.values.password}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                className={inputClass(!!formik.touched.password && !!formik.errors.password)}
+              />
+              {formik.touched.password && formik.errors.password && (
+                <p className="text-danger text-xs mt-1">{formik.errors.password}</p>
+              )}
+            </div>
 
-                if (result?.ok) {
-                  router.push('/dashboard');
-                  router.refresh();
-                }
-              } catch {
-                setError('Error de conexión');
-              } finally {
-                setSubmitting(false);
-              }
-            }}
-          >
-            {({ isSubmitting, errors, touched }) => (
-              <Form className="space-y-4">
-                <div>
-                  <Field
-                    as={Input}
-                    name="name"
-                    label="Nombre completo"
-                    placeholder="Tu nombre"
-                    variant="bordered"
-                    isInvalid={touched.name && !!errors.name}
-                  />
-                  <ErrorMessage
-                    name="name"
-                    component="p"
-                    className="text-danger text-xs mt-1"
-                  />
-                </div>
+            <div>
+              <label htmlFor="reg-confirm" className="block text-sm font-medium text-foreground/80 mb-2">
+                Confirmar contraseña
+              </label>
+              <input
+                id="reg-confirm"
+                name="confirmPassword"
+                type="password"
+                placeholder="Repetí tu contraseña"
+                value={formik.values.confirmPassword}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                className={inputClass(!!formik.touched.confirmPassword && !!formik.errors.confirmPassword)}
+              />
+              {formik.touched.confirmPassword && formik.errors.confirmPassword && (
+                <p className="text-danger text-xs mt-1">{formik.errors.confirmPassword}</p>
+              )}
+            </div>
 
-                <div>
-                  <Field
-                    as={Input}
-                    name="email"
-                    type="email"
-                    label="Email"
-                    placeholder="tu@email.com"
-                    variant="bordered"
-                    isInvalid={touched.email && !!errors.email}
-                  />
-                  <ErrorMessage
-                    name="email"
-                    component="p"
-                    className="text-danger text-xs mt-1"
-                  />
-                </div>
-
-                <div>
-                  <Field
-                    as={Input}
-                    name="password"
-                    type="password"
-                    label="Contraseña"
-                    placeholder="Mínimo 6 caracteres"
-                    variant="bordered"
-                    isInvalid={touched.password && !!errors.password}
-                  />
-                  <ErrorMessage
-                    name="password"
-                    component="p"
-                    className="text-danger text-xs mt-1"
-                  />
-                </div>
-
-                <div>
-                  <Field
-                    as={Input}
-                    name="confirmPassword"
-                    type="password"
-                    label="Confirmar contraseña"
-                    placeholder="Repetí tu contraseña"
-                    variant="bordered"
-                    isInvalid={
-                      touched.confirmPassword && !!errors.confirmPassword
-                    }
-                  />
-                  <ErrorMessage
-                    name="confirmPassword"
-                    component="p"
-                    className="text-danger text-xs mt-1"
-                  />
-                </div>
-
-                <Button
-                  type="submit"
-                  color="primary"
-                  variant="shadow"
-                  fullWidth
-                  isLoading={isSubmitting}
-                  className="font-semibold"
-                >
-                  Crear Cuenta
-                </Button>
-              </Form>
-            )}
-          </Formik>
+            <Button
+              type="submit"
+              color="primary"
+              variant="flat"
+              fullWidth
+              radius="full"
+              isLoading={formik.isSubmitting}
+              className="font-semibold bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/25"
+            >
+              Crear Cuenta
+            </Button>
+          </form>
 
           <Divider />
 
           <Button
             variant="bordered"
             fullWidth
+            radius="full"
             className="border-default-200"
             onPress={() => signIn('google', { callbackUrl: '/dashboard' })}
             startContent={
