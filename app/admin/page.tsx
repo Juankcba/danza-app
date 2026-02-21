@@ -18,6 +18,10 @@ import {
   Tabs,
   Tab,
   Divider,
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
   addToast,
 } from '@heroui/react';
 import { Header } from '@/components/header';
@@ -54,6 +58,16 @@ interface Enrollment {
   payment?: { amount: number; status: string };
 }
 
+interface Instructor {
+  id: string;
+  name: string;
+  specialty: string;
+  bio: string;
+  image?: string;
+  _count: { courses: number };
+  createdAt: string;
+}
+
 const levelLabel: Record<string, string> = {
   PRINCIPIANTE: 'Principiante',
   INTERMEDIO: 'Intermedio',
@@ -66,13 +80,21 @@ const levelColor: Record<string, 'success' | 'warning' | 'danger'> = {
   AVANZADO: 'danger',
 };
 
+const tableClassNames = {
+  wrapper: 'bg-transparent shadow-none p-0',
+  th: 'bg-default-100/50 text-foreground/60 text-xs uppercase',
+  td: 'py-3',
+};
+
 export default function AdminPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [inquiries, setInquiries] = useState<ContactInquiry[]>([]);
+  const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [loading, setLoading] = useState(true);
+  const [newInstructor, setNewInstructor] = useState({ name: '', specialty: '', bio: '' });
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -84,17 +106,20 @@ export default function AdminPage() {
 
   const fetchData = useCallback(async () => {
     try {
-      const [coursesRes, enrollmentsRes, inquiriesRes] = await Promise.all([
-        fetch('/api/courses'),
+      const [coursesRes, enrollmentsRes, inquiriesRes, instructorsRes] = await Promise.all([
+        fetch('/api/courses?all=true'),
         fetch('/api/enrollments'),
         fetch('/api/contact'),
+        fetch('/api/instructors'),
       ]);
       const coursesData = await coursesRes.json();
       const enrollmentsData = await enrollmentsRes.json();
       const inquiriesData = await inquiriesRes.json();
+      const instructorsData = await instructorsRes.json();
       setCourses(Array.isArray(coursesData) ? coursesData : []);
       setEnrollments(Array.isArray(enrollmentsData) ? enrollmentsData : []);
       setInquiries(Array.isArray(inquiriesData) ? inquiriesData : []);
+      setInstructors(Array.isArray(instructorsData) ? instructorsData : []);
     } catch {
       console.error('Error fetching admin data');
     } finally {
@@ -108,7 +133,7 @@ export default function AdminPage() {
     }
   }, [session, fetchData]);
 
-  const handleDelete = async (courseId: string) => {
+  const handleDeleteCourse = async (courseId: string) => {
     if (!confirm('¿Estás seguro de que querés eliminar este curso?')) return;
     try {
       const res = await fetch(`/api/courses/${courseId}`, { method: 'DELETE' });
@@ -118,6 +143,75 @@ export default function AdminPage() {
       }
     } catch {
       addToast({ title: 'Error al eliminar', color: 'danger' });
+    }
+  };
+
+  const handleTogglePublish = async (course: Course) => {
+    try {
+      const res = await fetch(`/api/courses/${course.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ active: !course.active }),
+      });
+      if (res.ok) {
+        addToast({
+          title: course.active ? 'Curso despublicado' : 'Curso publicado',
+          color: 'success',
+        });
+        fetchData();
+      }
+    } catch {
+      addToast({ title: 'Error al actualizar', color: 'danger' });
+    }
+  };
+
+  const handleCloneCourse = async (course: Course) => {
+    try {
+      const res = await fetch('/api/courses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: `${course.name} (copia)`,
+          description: course.description,
+          level: course.level,
+          duration: course.duration,
+          schedule: course.schedule,
+          price: course.price,
+          capacity: course.capacity,
+          instructorId: course.instructor.id,
+          active: false,
+        }),
+      });
+      if (res.ok) {
+        addToast({ title: 'Curso clonado como borrador', color: 'success' });
+        fetchData();
+      }
+    } catch {
+      addToast({ title: 'Error al clonar', color: 'danger' });
+    }
+  };
+
+  const handleCreateInstructor = async () => {
+    if (!newInstructor.name || !newInstructor.specialty || !newInstructor.bio) {
+      addToast({ title: 'Completá todos los campos', color: 'warning' });
+      return;
+    }
+    try {
+      const res = await fetch('/api/instructors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newInstructor),
+      });
+      if (res.ok) {
+        addToast({ title: 'Instructor creado', color: 'success' });
+        setNewInstructor({ name: '', specialty: '', bio: '' });
+        fetchData();
+      } else {
+        const data = await res.json();
+        addToast({ title: 'Error', description: data.error, color: 'danger' });
+      }
+    } catch {
+      addToast({ title: 'Error de conexión', color: 'danger' });
     }
   };
 
@@ -140,11 +234,11 @@ export default function AdminPage() {
         <h1 className="text-3xl font-bold mb-8">Panel de Administración</h1>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
           {[
             { label: 'Cursos', value: courses.length, emoji: '📚' },
+            { label: 'Instructores', value: instructors.length, emoji: '💃' },
             { label: 'Alumnos', value: totalStudents, emoji: '👥' },
-            { label: 'Activos', value: activeStudents, emoji: '✅' },
             { label: 'Consultas', value: unreadInquiries, emoji: '✉️' },
           ].map((stat) => (
             <Card key={stat.label} className="glass border border-default-100">
@@ -170,7 +264,7 @@ export default function AdminPage() {
               tabContent: 'group-data-[selected=true]:text-white',
             }}
           >
-            {/* Courses Tab */}
+            {/* ───── Courses Tab ───── */}
             <Tab
               key="courses"
               title={
@@ -207,44 +301,84 @@ export default function AdminPage() {
                       </button>
                     </div>
                   ) : (
-                    <Table aria-label="Cursos" removeWrapper>
+                    <Table aria-label="Cursos" isStriped classNames={tableClassNames}>
                       <TableHeader>
-                        <TableColumn>NOMBRE</TableColumn>
-                        <TableColumn>NIVEL</TableColumn>
-                        <TableColumn>HORARIO</TableColumn>
-                        <TableColumn>PRECIO</TableColumn>
-                        <TableColumn>ALUMNOS</TableColumn>
-                        <TableColumn>ACCIONES</TableColumn>
+                        <TableColumn width="25%">NOMBRE</TableColumn>
+                        <TableColumn width="12%" align="center">NIVEL</TableColumn>
+                        <TableColumn width="22%">HORARIO</TableColumn>
+                        <TableColumn width="10%" align="center">PRECIO</TableColumn>
+                        <TableColumn width="10%" align="center">ALUMNOS</TableColumn>
+                        <TableColumn width="10%" align="center">ESTADO</TableColumn>
+                        <TableColumn width="11%" align="center">ACCIONES</TableColumn>
                       </TableHeader>
                       <TableBody>
                         {courses.map((course) => (
                           <TableRow key={course.id}>
                             <TableCell className="font-medium">{course.name}</TableCell>
                             <TableCell>
-                              <Chip size="sm" variant="flat" color={levelColor[course.level] || 'default'}>
-                                {levelLabel[course.level] || course.level}
-                              </Chip>
+                              <div className="flex justify-center">
+                                <Chip size="sm" variant="flat" color={levelColor[course.level] || 'default'}>
+                                  {levelLabel[course.level] || course.level}
+                                </Chip>
+                              </div>
                             </TableCell>
-                            <TableCell className="text-foreground/70">{course.schedule}</TableCell>
-                            <TableCell className="font-semibold">
+                            <TableCell className="text-foreground/70 text-sm">{course.schedule}</TableCell>
+                            <TableCell className="font-semibold text-center">
                               ${course.price.toLocaleString('es-AR')}
                             </TableCell>
                             <TableCell>
-                              <Chip size="sm" variant="flat">
-                                {course._count.enrollments}
-                              </Chip>
+                              <div className="flex justify-center">
+                                <Chip size="sm" variant="flat">{course._count.enrollments}</Chip>
+                              </div>
                             </TableCell>
                             <TableCell>
-                              <div className="flex gap-2">
-                                <Button
+                              <div className="flex justify-center">
+                                <Chip
                                   size="sm"
-                                  variant="flat"
-                                  radius="full"
-                                  color="danger"
-                                  onPress={() => handleDelete(course.id)}
+                                  variant="dot"
+                                  color={course.active ? 'success' : 'default'}
                                 >
-                                  Eliminar
-                                </Button>
+                                  {course.active ? 'Publicado' : 'Borrador'}
+                                </Chip>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex justify-center">
+                                <Dropdown>
+                                  <DropdownTrigger>
+                                    <Button size="sm" variant="flat" radius="full" isIconOnly>
+                                      ⋯
+                                    </Button>
+                                  </DropdownTrigger>
+                                  <DropdownMenu aria-label="Acciones del curso">
+                                    <DropdownItem
+                                      key="edit"
+                                      onPress={() => router.push(`/admin/cursos/nuevo?edit=${course.id}`)}
+                                    >
+                                      ✏️ Editar
+                                    </DropdownItem>
+                                    <DropdownItem
+                                      key="publish"
+                                      onPress={() => handleTogglePublish(course)}
+                                    >
+                                      {course.active ? '📝 Despublicar' : '🚀 Publicar'}
+                                    </DropdownItem>
+                                    <DropdownItem
+                                      key="clone"
+                                      onPress={() => handleCloneCourse(course)}
+                                    >
+                                      📋 Clonar
+                                    </DropdownItem>
+                                    <DropdownItem
+                                      key="delete"
+                                      className="text-danger"
+                                      color="danger"
+                                      onPress={() => handleDeleteCourse(course.id)}
+                                    >
+                                      🗑️ Eliminar
+                                    </DropdownItem>
+                                  </DropdownMenu>
+                                </Dropdown>
                               </div>
                             </TableCell>
                           </TableRow>
@@ -256,7 +390,7 @@ export default function AdminPage() {
               </Card>
             </Tab>
 
-            {/* Enrollments Tab */}
+            {/* ───── Enrollments Tab ───── */}
             <Tab
               key="enrollments"
               title={
@@ -279,50 +413,54 @@ export default function AdminPage() {
                       <p className="text-foreground/60">No hay inscripciones todavía</p>
                     </div>
                   ) : (
-                    <Table aria-label="Inscripciones" removeWrapper>
+                    <Table aria-label="Inscripciones" isStriped classNames={tableClassNames}>
                       <TableHeader>
-                        <TableColumn>ALUMNO</TableColumn>
-                        <TableColumn>EMAIL</TableColumn>
-                        <TableColumn>CURSO</TableColumn>
-                        <TableColumn>ESTADO</TableColumn>
-                        <TableColumn>PAGO</TableColumn>
-                        <TableColumn>FECHA</TableColumn>
+                        <TableColumn width="18%">ALUMNO</TableColumn>
+                        <TableColumn width="22%">EMAIL</TableColumn>
+                        <TableColumn width="18%">CURSO</TableColumn>
+                        <TableColumn width="12%" align="center">ESTADO</TableColumn>
+                        <TableColumn width="15%" align="center">PAGO</TableColumn>
+                        <TableColumn width="15%" align="center">FECHA</TableColumn>
                       </TableHeader>
                       <TableBody>
                         {enrollments.map((enrollment) => (
                           <TableRow key={enrollment.id}>
                             <TableCell className="font-medium">{enrollment.user.name}</TableCell>
-                            <TableCell className="text-foreground/70">{enrollment.user.email}</TableCell>
+                            <TableCell className="text-foreground/70 text-sm">{enrollment.user.email}</TableCell>
                             <TableCell>{enrollment.course.name}</TableCell>
                             <TableCell>
-                              <Chip
-                                size="sm"
-                                variant="flat"
-                                color={
-                                  enrollment.status === 'ACTIVE'
-                                    ? 'success'
-                                    : enrollment.status === 'PENDING'
-                                      ? 'warning'
-                                      : 'default'
-                                }
-                              >
-                                {enrollment.status === 'ACTIVE' ? 'Activa' : enrollment.status === 'PENDING' ? 'Pendiente' : enrollment.status}
-                              </Chip>
-                            </TableCell>
-                            <TableCell>
-                              {enrollment.payment ? (
+                              <div className="flex justify-center">
                                 <Chip
                                   size="sm"
                                   variant="flat"
-                                  color={enrollment.payment.status === 'APPROVED' ? 'success' : 'warning'}
+                                  color={
+                                    enrollment.status === 'ACTIVE'
+                                      ? 'success'
+                                      : enrollment.status === 'PENDING'
+                                        ? 'warning'
+                                        : 'default'
+                                  }
                                 >
-                                  ${enrollment.payment.amount.toLocaleString('es-AR')}
+                                  {enrollment.status === 'ACTIVE' ? 'Activa' : enrollment.status === 'PENDING' ? 'Pendiente' : enrollment.status}
                                 </Chip>
-                              ) : (
-                                <span className="text-foreground/40 text-sm">Sin pago</span>
-                              )}
+                              </div>
                             </TableCell>
-                            <TableCell className="text-foreground/70">
+                            <TableCell>
+                              <div className="flex justify-center">
+                                {enrollment.payment ? (
+                                  <Chip
+                                    size="sm"
+                                    variant="flat"
+                                    color={enrollment.payment.status === 'APPROVED' ? 'success' : 'warning'}
+                                  >
+                                    ${enrollment.payment.amount.toLocaleString('es-AR')}
+                                  </Chip>
+                                ) : (
+                                  <span className="text-foreground/40 text-sm">Sin pago</span>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-foreground/70 text-center text-sm">
                               {new Date(enrollment.createdAt).toLocaleDateString('es-AR')}
                             </TableCell>
                           </TableRow>
@@ -334,7 +472,99 @@ export default function AdminPage() {
               </Card>
             </Tab>
 
-            {/* Inquiries Tab */}
+            {/* ───── Instructors Tab ───── */}
+            <Tab
+              key="instructors"
+              title={
+                <div className="flex items-center gap-2">
+                  <span>💃</span>
+                  <span>Instructores</span>
+                  <Chip size="sm" variant="flat">{instructors.length}</Chip>
+                </div>
+              }
+            >
+              <Card className="glass border border-default-100 mt-6">
+                <CardBody className="p-0">
+                  <div className="px-6 py-4">
+                    <h2 className="text-lg font-bold">Gestión de Instructores</h2>
+                  </div>
+                  <Divider />
+
+                  {/* Inline create form */}
+                  <div className="px-6 py-4 bg-default-50/50">
+                    <p className="text-sm font-medium text-foreground/80 mb-3">Agregar instructor</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <input
+                        placeholder="Nombre"
+                        value={newInstructor.name}
+                        onChange={(e) => setNewInstructor({ ...newInstructor, name: e.target.value })}
+                        className="px-4 py-2.5 rounded-xl bg-default-100/50 border border-default-200 text-foreground placeholder:text-foreground/40 outline-none focus:border-primary text-sm"
+                      />
+                      <input
+                        placeholder="Especialidad (ej: Salsa, Bachata)"
+                        value={newInstructor.specialty}
+                        onChange={(e) => setNewInstructor({ ...newInstructor, specialty: e.target.value })}
+                        className="px-4 py-2.5 rounded-xl bg-default-100/50 border border-default-200 text-foreground placeholder:text-foreground/40 outline-none focus:border-primary text-sm"
+                      />
+                      <input
+                        placeholder="Biografía breve"
+                        value={newInstructor.bio}
+                        onChange={(e) => setNewInstructor({ ...newInstructor, bio: e.target.value })}
+                        className="px-4 py-2.5 rounded-xl bg-default-100/50 border border-default-200 text-foreground placeholder:text-foreground/40 outline-none focus:border-primary text-sm"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleCreateInstructor}
+                      className="mt-3 text-sm font-semibold px-6 py-2 rounded-full bg-linear-to-r from-pink-500 to-pink-600 text-white hover:opacity-90 transition-opacity cursor-pointer"
+                    >
+                      + Agregar
+                    </button>
+                  </div>
+                  <Divider />
+
+                  {instructors.length === 0 ? (
+                    <div className="text-center py-16">
+                      <p className="text-4xl mb-3">💃</p>
+                      <p className="text-foreground/60">No hay instructores todavía</p>
+                    </div>
+                  ) : (
+                    <Table aria-label="Instructores" isStriped classNames={tableClassNames}>
+                      <TableHeader>
+                        <TableColumn width="25%">NOMBRE</TableColumn>
+                        <TableColumn width="20%" align="center">ESPECIALIDAD</TableColumn>
+                        <TableColumn width="40%">BIOGRAFÍA</TableColumn>
+                        <TableColumn width="15%" align="center">CURSOS</TableColumn>
+                      </TableHeader>
+                      <TableBody>
+                        {instructors.map((inst) => (
+                          <TableRow key={inst.id}>
+                            <TableCell className="font-medium">{inst.name}</TableCell>
+                            <TableCell>
+                              <div className="flex justify-center">
+                                <Chip size="sm" variant="flat" color="secondary">
+                                  {inst.specialty}
+                                </Chip>
+                              </div>
+                            </TableCell>
+                            <TableCell className="max-w-xs">
+                              <p className="truncate text-foreground/80 text-sm">{inst.bio}</p>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex justify-center">
+                                <Chip size="sm" variant="flat">{inst._count.courses}</Chip>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </CardBody>
+              </Card>
+            </Tab>
+
+            {/* ───── Inquiries Tab ───── */}
             <Tab
               key="inquiries"
               title={
@@ -359,29 +589,31 @@ export default function AdminPage() {
                       <p className="text-foreground/60">No hay consultas todavía</p>
                     </div>
                   ) : (
-                    <Table aria-label="Consultas" removeWrapper>
+                    <Table aria-label="Consultas" isStriped classNames={tableClassNames}>
                       <TableHeader>
-                        <TableColumn>NOMBRE</TableColumn>
-                        <TableColumn>EMAIL</TableColumn>
-                        <TableColumn>MENSAJE</TableColumn>
-                        <TableColumn>FECHA</TableColumn>
-                        <TableColumn>ESTADO</TableColumn>
+                        <TableColumn width="15%">NOMBRE</TableColumn>
+                        <TableColumn width="20%">EMAIL</TableColumn>
+                        <TableColumn width="35%">MENSAJE</TableColumn>
+                        <TableColumn width="15%" align="center">FECHA</TableColumn>
+                        <TableColumn width="15%" align="center">ESTADO</TableColumn>
                       </TableHeader>
                       <TableBody>
                         {inquiries.map((inquiry) => (
                           <TableRow key={inquiry.id}>
                             <TableCell className="font-medium">{inquiry.name}</TableCell>
-                            <TableCell className="text-foreground/70">{inquiry.email}</TableCell>
+                            <TableCell className="text-foreground/70 text-sm">{inquiry.email}</TableCell>
                             <TableCell className="max-w-xs">
-                              <p className="truncate text-foreground/80">{inquiry.message}</p>
+                              <p className="truncate text-foreground/80 text-sm">{inquiry.message}</p>
                             </TableCell>
-                            <TableCell className="text-foreground/70">
+                            <TableCell className="text-foreground/70 text-center text-sm">
                               {new Date(inquiry.createdAt).toLocaleDateString('es-AR')}
                             </TableCell>
                             <TableCell>
-                              <Chip size="sm" variant="flat" color={inquiry.read ? 'default' : 'warning'}>
-                                {inquiry.read ? 'Leído' : 'Nuevo'}
-                              </Chip>
+                              <div className="flex justify-center">
+                                <Chip size="sm" variant="flat" color={inquiry.read ? 'default' : 'warning'}>
+                                  {inquiry.read ? 'Leído' : 'Nuevo'}
+                                </Chip>
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useFormik } from 'formik';
@@ -14,6 +14,12 @@ import {
 } from '@heroui/react';
 import { courseSchema } from '@/lib/validations';
 import { Header } from '@/components/header';
+
+interface Instructor {
+    id: string;
+    name: string;
+    specialty: string;
+}
 
 const levelOptions = [
     { key: 'PRINCIPIANTE', label: 'Principiante' },
@@ -30,6 +36,7 @@ const selectClass =
 export default function NuevoCursoPage() {
     const { data: session, status } = useSession();
     const router = useRouter();
+    const [instructors, setInstructors] = useState<Instructor[]>([]);
 
     useEffect(() => {
         if (status === 'unauthenticated') {
@@ -38,6 +45,15 @@ export default function NuevoCursoPage() {
             router.push('/dashboard');
         }
     }, [status, session, router]);
+
+    useEffect(() => {
+        fetch('/api/instructors')
+            .then((res) => res.json())
+            .then((data) => {
+                if (Array.isArray(data)) setInstructors(data);
+            })
+            .catch(console.error);
+    }, []);
 
     const formik = useFormik({
         initialValues: {
@@ -251,20 +267,26 @@ export default function NuevoCursoPage() {
                                 </div>
                             </div>
 
-                            {/* Instructor ID */}
+                            {/* Instructor */}
                             <div>
                                 <label htmlFor="course-instructor" className="block text-sm font-medium text-foreground/80 mb-2">
-                                    ID Instructor
+                                    Instructor
                                 </label>
-                                <input
+                                <select
                                     id="course-instructor"
                                     name="instructorId"
-                                    placeholder="ID del instructor en la base de datos"
                                     value={formik.values.instructorId}
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
-                                    className={inputClass(!!formik.touched.instructorId && !!formik.errors.instructorId)}
-                                />
+                                    className={selectClass}
+                                >
+                                    <option value="">Seleccionar instructor...</option>
+                                    {instructors.map((inst) => (
+                                        <option key={inst.id} value={inst.id}>
+                                            {inst.name} — {inst.specialty}
+                                        </option>
+                                    ))}
+                                </select>
                                 {formik.touched.instructorId && formik.errors.instructorId && (
                                     <p className="text-danger text-xs mt-1">{formik.errors.instructorId}</p>
                                 )}

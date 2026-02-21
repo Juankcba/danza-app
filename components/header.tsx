@@ -20,19 +20,21 @@ import {
 } from '@heroui/react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
 
 const menuItems = [
-  { label: 'Inicio', href: '#' },
-  { label: 'Cursos', href: '#cursos' },
-  { label: 'Instructores', href: '#instructores' },
-  { label: 'Nosotros', href: '#nosotros' },
-  { label: 'Contacto', href: '#contacto' },
+  { label: 'Inicio', href: '/' },
+  { label: 'Cursos', href: '/#cursos' },
+  { label: 'Instructores', href: '/#instructores' },
+  { label: 'Nosotros', href: '/#nosotros' },
+  { label: 'Contacto', href: '/#contacto' },
 ];
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { data: session } = useSession();
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
 
   return (
     <Navbar
@@ -79,6 +81,18 @@ export function Header() {
       </NavbarContent>
 
       <NavbarContent justify="end">
+        <NavbarItem>
+          <Button
+            isIconOnly
+            variant="light"
+            radius="full"
+            size="sm"
+            onPress={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            aria-label="Cambiar tema"
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </Button>
+        </NavbarItem>
         {session?.user ? (
           <Dropdown placement="bottom-end">
             <DropdownTrigger>

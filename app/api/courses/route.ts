@@ -2,10 +2,13 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 
-export async function GET() {
+export async function GET(request: Request) {
     try {
+        const { searchParams } = new URL(request.url);
+        const showAll = searchParams.get('all') === 'true';
+
         const courses = await prisma.course.findMany({
-            where: { active: true },
+            where: showAll ? {} : { active: true },
             include: {
                 instructor: true,
                 _count: { select: { enrollments: { where: { status: 'ACTIVE' } } } },
@@ -43,6 +46,7 @@ export async function POST(request: Request) {
                 capacity: data.capacity,
                 image: data.image || null,
                 instructorId: data.instructorId,
+                active: data.active !== undefined ? data.active : true,
             },
             include: { instructor: true },
         });
