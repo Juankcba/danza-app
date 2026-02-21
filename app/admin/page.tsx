@@ -487,208 +487,204 @@ export default function AdminPage() {
       {/* Course Drawer (side modal) */}
       <Modal
         isOpen={isDrawerOpen}
-        onClose={() => {
-          setIsDrawerOpen(false);
-          setEditingCourse(null);
-          formik.resetForm();
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsDrawerOpen(false);
+            setEditingCourse(null);
+            formik.resetForm();
+          }
         }}
         backdrop="blur"
-        size="lg"
-        placement="center"
+        size="2xl"
         scrollBehavior="inside"
       >
         <ModalContent>
-          <ModalHeader className="flex flex-col gap-1">
-            <h2 className="text-xl font-bold">
-              {editingCourse ? 'Editar Curso' : 'Nuevo Curso'}
-            </h2>
-            <p className="text-sm text-foreground/60 font-normal">
-              {editingCourse
-                ? 'Modificá los datos del curso'
-                : 'Completá los datos para crear un nuevo curso'}
-            </p>
-          </ModalHeader>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                <h2 className="text-xl font-bold">
+                  {editingCourse ? 'Editar Curso' : 'Nuevo Curso'}
+                </h2>
+                <p className="text-sm text-foreground/60 font-normal">
+                  {editingCourse
+                    ? 'Modificá los datos del curso'
+                    : 'Completá los datos para crear un nuevo curso'}
+                </p>
+              </ModalHeader>
 
-          <form onSubmit={formik.handleSubmit}>
-            <ModalBody className="space-y-4">
-              {/* Name */}
-              <div>
-                <label htmlFor="course-name" className="block text-sm font-medium text-foreground/80 mb-2">
-                  Nombre del curso
-                </label>
-                <input
-                  id="course-name"
-                  name="name"
-                  placeholder="ej: Salsa Nivel 1"
-                  value={formik.values.name}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className={inputClass(!!formik.touched.name && !!formik.errors.name)}
-                />
-                {formik.touched.name && formik.errors.name && (
-                  <p className="text-danger text-xs mt-1">{formik.errors.name}</p>
-                )}
-              </div>
+              <form onSubmit={formik.handleSubmit}>
+                <ModalBody className="space-y-4">
+                  {/* Name */}
+                  <div>
+                    <label htmlFor="course-name" className="block text-sm font-medium text-foreground/80 mb-2">
+                      Nombre del curso
+                    </label>
+                    <input
+                      id="course-name"
+                      name="name"
+                      placeholder="ej: Salsa Nivel 1"
+                      value={formik.values.name}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      className={inputClass(!!formik.touched.name && !!formik.errors.name)}
+                    />
+                    {formik.touched.name && formik.errors.name && (
+                      <p className="text-danger text-xs mt-1">{formik.errors.name}</p>
+                    )}
+                  </div>
 
-              {/* Description */}
-              <div>
-                <label htmlFor="course-desc" className="block text-sm font-medium text-foreground/80 mb-2">
-                  Descripción
-                </label>
-                <textarea
-                  id="course-desc"
-                  name="description"
-                  rows={3}
-                  placeholder="Describí el contenido del curso..."
-                  value={formik.values.description}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className={`${inputClass(!!formik.touched.description && !!formik.errors.description)} resize-none`}
-                />
-                {formik.touched.description && formik.errors.description && (
-                  <p className="text-danger text-xs mt-1">{formik.errors.description}</p>
-                )}
-              </div>
+                  {/* Description */}
+                  <div>
+                    <label htmlFor="course-desc" className="block text-sm font-medium text-foreground/80 mb-2">
+                      Descripción
+                    </label>
+                    <textarea
+                      id="course-desc"
+                      name="description"
+                      rows={3}
+                      placeholder="Describí el contenido del curso..."
+                      value={formik.values.description}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      className={`${inputClass(!!formik.touched.description && !!formik.errors.description)} resize-none`}
+                    />
+                    {formik.touched.description && formik.errors.description && (
+                      <p className="text-danger text-xs mt-1">{formik.errors.description}</p>
+                    )}
+                  </div>
 
-              {/* Level + Duration */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="course-level" className="block text-sm font-medium text-foreground/80 mb-2">
-                    Nivel
-                  </label>
-                  <select
-                    id="course-level"
-                    name="level"
-                    value={formik.values.level}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    className={selectClass}
+                  {/* Level + Duration */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="course-level" className="block text-sm font-medium text-foreground/80 mb-2">
+                        Nivel
+                      </label>
+                      <select
+                        id="course-level"
+                        name="level"
+                        value={formik.values.level}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        className={selectClass}
+                      >
+                        {levelOptions.map((opt) => (
+                          <option key={opt.key} value={opt.key}>{opt.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="course-duration" className="block text-sm font-medium text-foreground/80 mb-2">
+                        Duración
+                      </label>
+                      <input
+                        id="course-duration"
+                        name="duration"
+                        placeholder="ej: 3 meses"
+                        value={formik.values.duration}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        className={inputClass(!!formik.touched.duration && !!formik.errors.duration)}
+                      />
+                      {formik.touched.duration && formik.errors.duration && (
+                        <p className="text-danger text-xs mt-1">{formik.errors.duration}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Schedule */}
+                  <div>
+                    <label htmlFor="course-schedule" className="block text-sm font-medium text-foreground/80 mb-2">
+                      Horario
+                    </label>
+                    <input
+                      id="course-schedule"
+                      name="schedule"
+                      placeholder="ej: Lunes y Miércoles 18:00 - 19:30"
+                      value={formik.values.schedule}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      className={inputClass(!!formik.touched.schedule && !!formik.errors.schedule)}
+                    />
+                    {formik.touched.schedule && formik.errors.schedule && (
+                      <p className="text-danger text-xs mt-1">{formik.errors.schedule}</p>
+                    )}
+                  </div>
+
+                  {/* Price + Capacity */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="course-price" className="block text-sm font-medium text-foreground/80 mb-2">
+                        Precio (ARS)
+                      </label>
+                      <input
+                        id="course-price"
+                        name="price"
+                        type="number"
+                        placeholder="ej: 5000"
+                        value={formik.values.price}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        className={inputClass(!!formik.touched.price && !!formik.errors.price)}
+                      />
+                      {formik.touched.price && formik.errors.price && (
+                        <p className="text-danger text-xs mt-1">{formik.errors.price}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label htmlFor="course-capacity" className="block text-sm font-medium text-foreground/80 mb-2">
+                        Capacidad
+                      </label>
+                      <input
+                        id="course-capacity"
+                        name="capacity"
+                        type="number"
+                        placeholder="ej: 15"
+                        value={formik.values.capacity}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        className={inputClass(!!formik.touched.capacity && !!formik.errors.capacity)}
+                      />
+                      {formik.touched.capacity && formik.errors.capacity && (
+                        <p className="text-danger text-xs mt-1">{formik.errors.capacity}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Instructor ID */}
+                  <div>
+                    <label htmlFor="course-instructor" className="block text-sm font-medium text-foreground/80 mb-2">
+                      ID Instructor
+                    </label>
+                    <input
+                      id="course-instructor"
+                      name="instructorId"
+                      placeholder="ID del instructor en la base de datos"
+                      value={formik.values.instructorId}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      className={inputClass(!!formik.touched.instructorId && !!formik.errors.instructorId)}
+                    />
+                    {formik.touched.instructorId && formik.errors.instructorId && (
+                      <p className="text-danger text-xs mt-1">{formik.errors.instructorId}</p>
+                    )}
+                  </div>
+                </ModalBody>
+
+                <ModalFooter>
+                  <Button variant="flat" radius="full" onPress={onClose}>
+                    Cancelar
+                  </Button>
+                  <button
+                    type="submit"
+                    disabled={formik.isSubmitting}
+                    className="text-sm font-semibold px-6 py-2 rounded-full bg-linear-to-r from-pink-500 to-pink-600 text-white hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
                   >
-                    {levelOptions.map((opt) => (
-                      <option key={opt.key} value={opt.key}>{opt.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="course-duration" className="block text-sm font-medium text-foreground/80 mb-2">
-                    Duración
-                  </label>
-                  <input
-                    id="course-duration"
-                    name="duration"
-                    placeholder="ej: 3 meses"
-                    value={formik.values.duration}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    className={inputClass(!!formik.touched.duration && !!formik.errors.duration)}
-                  />
-                  {formik.touched.duration && formik.errors.duration && (
-                    <p className="text-danger text-xs mt-1">{formik.errors.duration}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Schedule */}
-              <div>
-                <label htmlFor="course-schedule" className="block text-sm font-medium text-foreground/80 mb-2">
-                  Horario
-                </label>
-                <input
-                  id="course-schedule"
-                  name="schedule"
-                  placeholder="ej: Lunes y Miércoles 18:00 - 19:30"
-                  value={formik.values.schedule}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className={inputClass(!!formik.touched.schedule && !!formik.errors.schedule)}
-                />
-                {formik.touched.schedule && formik.errors.schedule && (
-                  <p className="text-danger text-xs mt-1">{formik.errors.schedule}</p>
-                )}
-              </div>
-
-              {/* Price + Capacity */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="course-price" className="block text-sm font-medium text-foreground/80 mb-2">
-                    Precio (ARS)
-                  </label>
-                  <input
-                    id="course-price"
-                    name="price"
-                    type="number"
-                    placeholder="ej: 5000"
-                    value={formik.values.price}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    className={inputClass(!!formik.touched.price && !!formik.errors.price)}
-                  />
-                  {formik.touched.price && formik.errors.price && (
-                    <p className="text-danger text-xs mt-1">{formik.errors.price}</p>
-                  )}
-                </div>
-                <div>
-                  <label htmlFor="course-capacity" className="block text-sm font-medium text-foreground/80 mb-2">
-                    Capacidad
-                  </label>
-                  <input
-                    id="course-capacity"
-                    name="capacity"
-                    type="number"
-                    placeholder="ej: 15"
-                    value={formik.values.capacity}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    className={inputClass(!!formik.touched.capacity && !!formik.errors.capacity)}
-                  />
-                  {formik.touched.capacity && formik.errors.capacity && (
-                    <p className="text-danger text-xs mt-1">{formik.errors.capacity}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Instructor ID */}
-              <div>
-                <label htmlFor="course-instructor" className="block text-sm font-medium text-foreground/80 mb-2">
-                  ID Instructor
-                </label>
-                <input
-                  id="course-instructor"
-                  name="instructorId"
-                  placeholder="ID del instructor en la base de datos"
-                  value={formik.values.instructorId}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className={inputClass(!!formik.touched.instructorId && !!formik.errors.instructorId)}
-                />
-                {formik.touched.instructorId && formik.errors.instructorId && (
-                  <p className="text-danger text-xs mt-1">{formik.errors.instructorId}</p>
-                )}
-              </div>
-            </ModalBody>
-
-            <ModalFooter>
-              <Button
-                variant="flat"
-                radius="full"
-                onPress={() => {
-                  setIsDrawerOpen(false);
-                  setEditingCourse(null);
-                  formik.resetForm();
-                }}
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                radius="full"
-                isLoading={formik.isSubmitting}
-                className="font-semibold px-6 bg-gradient-to-r from-pink-500 to-pink-600 text-white border-0"
-              >
-                {editingCourse ? 'Guardar Cambios' : 'Crear Curso'}
-              </Button>
-            </ModalFooter>
-          </form>
+                    {formik.isSubmitting ? 'Guardando...' : editingCourse ? 'Guardar Cambios' : 'Crear Curso'}
+                  </button>
+                </ModalFooter>
+              </form>
+            </>
+          )}
         </ModalContent>
       </Modal>
     </div>
