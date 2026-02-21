@@ -1,12 +1,32 @@
 'use client';
 
-import { Card, CardBody, Button, Input, Link } from '@heroui/react';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { Card, CardBody, Button, Link } from '@heroui/react';
+import { useFormik } from 'formik';
 import { recoverPasswordSchema } from '@/lib/validations';
 import { useState } from 'react';
 
 export default function RecuperarPasswordPage() {
   const [sent, setSent] = useState(false);
+
+  const formik = useFormik({
+    initialValues: { email: '' },
+    validationSchema: recoverPasswordSchema,
+    onSubmit: async (values, { setSubmitting }) => {
+      try {
+        await fetch('/api/password-recovery', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: values.email }),
+        });
+        setSent(true);
+      } catch {
+        // Still show success to prevent email enumeration
+        setSent(true);
+      } finally {
+        setSubmitting(false);
+      }
+    },
+  });
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-primary/10 via-background to-secondary/5">
@@ -30,60 +50,57 @@ export default function RecuperarPasswordPage() {
                 Si el email existe en nuestra base de datos, vas a recibir un
                 enlace para restablecer tu contraseña.
               </p>
-              <Button as={Link} href="/login" color="primary" variant="flat">
+              <Button as={Link} href="/login" color="primary" variant="flat" radius="full">
                 Volver al Login
               </Button>
             </div>
           ) : (
-            <Formik
-              initialValues={{ email: '' }}
-              validationSchema={recoverPasswordSchema}
-              onSubmit={async (_values, { setSubmitting }) => {
-                // TODO: implement password reset API
-                setTimeout(() => {
-                  setSent(true);
-                  setSubmitting(false);
-                }, 1000);
-              }}
-            >
-              {({ isSubmitting, errors, touched }) => (
-                <Form className="space-y-4">
-                  <div>
-                    <Field
-                      as={Input}
-                      name="email"
-                      type="email"
-                      label="Email"
-                      placeholder="tu@email.com"
-                      variant="bordered"
-                      isInvalid={touched.email && !!errors.email}
-                    />
-                    <ErrorMessage
-                      name="email"
-                      component="p"
-                      className="text-danger text-xs mt-1"
-                    />
-                  </div>
-
-                  <Button
-                    type="submit"
-                    color="primary"
-                    variant="shadow"
-                    fullWidth
-                    isLoading={isSubmitting}
-                    className="font-semibold"
-                  >
-                    Enviar enlace
-                  </Button>
-
-                  <p className="text-center text-sm text-foreground/60">
-                    <Link href="/login" className="text-primary">
-                      Volver al Login
-                    </Link>
+            <form onSubmit={formik.handleSubmit} className="space-y-4">
+              <div>
+                <label
+                  htmlFor="recovery-email"
+                  className="block text-sm font-medium text-foreground/80 mb-2"
+                >
+                  Email
+                </label>
+                <input
+                  id="recovery-email"
+                  name="email"
+                  type="email"
+                  placeholder="tu@email.com"
+                  value={formik.values.email}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  className={`w-full px-4 py-3 rounded-xl bg-default-100/50 border text-foreground placeholder:text-foreground/40 outline-none transition-colors focus:border-primary ${formik.touched.email && formik.errors.email
+                      ? 'border-danger'
+                      : 'border-default-200'
+                    }`}
+                />
+                {formik.touched.email && formik.errors.email && (
+                  <p className="text-danger text-xs mt-1">
+                    {formik.errors.email}
                   </p>
-                </Form>
-              )}
-            </Formik>
+                )}
+              </div>
+
+              <Button
+                type="submit"
+                color="primary"
+                variant="flat"
+                fullWidth
+                radius="full"
+                isLoading={formik.isSubmitting}
+                className="font-semibold bg-gradient-to-r from-pink-500 to-pink-600 text-white"
+              >
+                Enviar enlace
+              </Button>
+
+              <p className="text-center text-sm text-foreground/60">
+                <Link href="/login" className="text-primary">
+                  Volver al Login
+                </Link>
+              </p>
+            </form>
           )}
         </CardBody>
       </Card>
