@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useFormik } from 'formik';
@@ -33,7 +33,7 @@ const inputClass = (hasError: boolean) =>
 const selectClass =
     'w-full px-4 py-3 rounded-xl bg-default-100/50 border border-default-200 text-foreground outline-none transition-colors focus:border-primary appearance-none cursor-pointer';
 
-export default function NuevoCursoPage() {
+function NuevoCursoContent() {
     const { data: session, status } = useSession();
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -355,5 +355,17 @@ export default function NuevoCursoPage() {
                 </Card>
             </main>
         </div>
+    );
+}
+
+export default function NuevoCursoPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+                <Spinner size="lg" color="secondary" />
+            </div>
+        }>
+            <NuevoCursoContent />
+        </Suspense>
     );
 }

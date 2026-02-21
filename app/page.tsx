@@ -5,6 +5,7 @@ import { InstructorsSection } from '@/components/instructors-section';
 import { AboutSection } from '@/components/about-section';
 import { ContactSection } from '@/components/contact-section';
 import { Footer } from '@/components/footer';
+import { TestEmailButton } from '@/components/test-email-button';
 
 export default function HomePage() {
   return (
@@ -18,6 +19,8 @@ export default function HomePage() {
         <ContactSection />
       </main>
       <Footer />
+      {/* TODO: Remover después de probar emails */}
+      <TestEmailButton />
     </div>
   );
 }
