@@ -139,18 +139,19 @@ export function CoursesSection() {
                   </div>
                 </CardBody>
 
-                <CardFooter>
+                <CardFooter className="pt-0 pb-4 px-4">
                   <Button
-                    color="primary"
-                    variant="shadow"
                     fullWidth
-                    className="font-semibold"
                     isDisabled={course._count.enrollments >= course.capacity}
                     onPress={() => setSelectedCourse(course)}
+                    className={`font-bold text-white text-base py-6 rounded-xl transition-all ${course._count.enrollments >= course.capacity
+                        ? 'bg-default-300 text-default-500'
+                        : 'bg-gradient-to-r from-pink-500 to-pink-600 shadow-lg shadow-pink-500/25 hover:shadow-pink-500/40 hover:scale-[1.02] active:scale-[0.98]'
+                      }`}
                   >
                     {course._count.enrollments >= course.capacity
-                      ? 'Cupo Completo'
-                      : 'Inscribirme'}
+                      ? '🚫 Cupo Completo'
+                      : '✨ Inscribirme'}
                   </Button>
                 </CardFooter>
               </Card>
