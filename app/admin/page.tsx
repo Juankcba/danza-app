@@ -269,28 +269,26 @@ export default function AdminPage() {
                 <CardBody className="p-0">
                   <div className="flex justify-between items-center px-6 py-4">
                     <h2 className="text-lg font-bold">Gestión de Cursos</h2>
-                    <Button
-                      size="sm"
-                      radius="full"
-                      className="font-semibold px-6 bg-gradient-to-r from-pink-500 to-pink-600 text-white border-0"
-                      onPress={openCreate}
+                    <button
+                      type="button"
+                      onClick={openCreate}
+                      className="text-sm font-semibold px-6 py-2 rounded-full bg-gradient-to-r from-pink-500 to-pink-600 text-white hover:opacity-90 transition-opacity cursor-pointer"
                     >
                       + Nuevo Curso
-                    </Button>
+                    </button>
                   </div>
                   <Divider />
                   {courses.length === 0 ? (
                     <div className="text-center py-16">
                       <p className="text-4xl mb-3">📚</p>
                       <p className="text-foreground/60">No hay cursos creados todavía</p>
-                      <Button
-                        size="sm"
-                        radius="full"
-                        className="mt-4 font-semibold px-6 bg-gradient-to-r from-pink-500 to-pink-600 text-white border-0"
-                        onPress={openCreate}
+                      <button
+                        type="button"
+                        onClick={openCreate}
+                        className="mt-4 text-sm font-semibold px-6 py-2 rounded-full bg-gradient-to-r from-pink-500 to-pink-600 text-white hover:opacity-90 transition-opacity cursor-pointer"
                       >
                         Crear el primer curso
-                      </Button>
+                      </button>
                     </div>
                   ) : (
                     <Table aria-label="Cursos" removeWrapper>
