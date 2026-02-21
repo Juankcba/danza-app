@@ -4,6 +4,8 @@ import Google from 'next-auth/providers/google';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import bcrypt from 'bcryptjs';
 import { prisma } from './prisma';
+import { sendEmail } from './email';
+import { welcomeEmail } from './email-templates';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
     adapter: PrismaAdapter(prisma),
@@ -52,6 +54,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     ],
     session: {
         strategy: 'jwt',
+    },
+    events: {
+        async createUser({ user }) {
+            // Send welcome email when a new user is created (OAuth or credentials)
+            if (user.email) {
+                const { subject, html } = welcomeEmail(user.name || 'Usuario');
+                sendEmail({ to: user.email, subject, html }).catch(console.error);
+            }
+        },
     },
     callbacks: {
         async jwt({ token, user }) {
