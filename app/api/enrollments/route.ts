@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
+import { sendEmail } from '@/lib/email';
+import { enrollmentConfirmationEmail } from '@/lib/email-templates';
 
 export async function GET() {
     try {
@@ -62,6 +64,7 @@ export async function POST(request: Request) {
         const course = await prisma.course.findUnique({
             where: { id: courseId },
             include: {
+                instructor: true,
                 _count: { select: { enrollments: { where: { status: 'ACTIVE' } } } },
             },
         });
@@ -89,6 +92,19 @@ export async function POST(request: Request) {
                 course: { include: { instructor: true } },
             },
         });
+
+        // Send enrollment confirmation email (non-blocking)
+        const userEmail = session.user.email;
+        const userName = session.user.name || 'Alumno/a';
+        if (userEmail) {
+            const { subject, html } = enrollmentConfirmationEmail(
+                userName,
+                course.name,
+                course.schedule,
+                course.instructor?.name || 'Por confirmar'
+            );
+            sendEmail({ to: userEmail, subject, html }).catch(console.error);
+        }
 
         return NextResponse.json(enrollment, { status: 201 });
     } catch (error) {

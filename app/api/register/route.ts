@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
+import { sendEmail } from '@/lib/email';
+import { welcomeEmail } from '@/lib/email-templates';
 
 export async function POST(request: Request) {
     try {
@@ -30,6 +32,10 @@ export async function POST(request: Request) {
                 hashedPassword,
             },
         });
+
+        // Send welcome email (non-blocking)
+        const { subject, html } = welcomeEmail(name);
+        sendEmail({ to: email, subject, html }).catch(console.error);
 
         return NextResponse.json(
             { id: user.id, name: user.name, email: user.email },
