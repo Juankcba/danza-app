@@ -43,6 +43,15 @@ interface Course {
   _count: { enrollments: number };
 }
 
+interface ContactInquiry {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  read: boolean;
+  createdAt: string;
+}
+
 interface Enrollment {
   id: string;
   status: string;
@@ -70,6 +79,7 @@ export default function AdminPage() {
   const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const [inquiries, setInquiries] = useState<ContactInquiry[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
@@ -84,14 +94,17 @@ export default function AdminPage() {
 
   const fetchData = useCallback(async () => {
     try {
-      const [coursesRes, enrollmentsRes] = await Promise.all([
+      const [coursesRes, enrollmentsRes, inquiriesRes] = await Promise.all([
         fetch('/api/courses'),
         fetch('/api/enrollments'),
+        fetch('/api/contact'),
       ]);
       const coursesData = await coursesRes.json();
       const enrollmentsData = await enrollmentsRes.json();
+      const inquiriesData = await inquiriesRes.json();
       setCourses(Array.isArray(coursesData) ? coursesData : []);
       setEnrollments(Array.isArray(enrollmentsData) ? enrollmentsData : []);
+      setInquiries(Array.isArray(inquiriesData) ? inquiriesData : []);
     } catch {
       console.error('Error fetching admin data');
     } finally {
@@ -257,11 +270,9 @@ export default function AdminPage() {
                   <div className="flex justify-between items-center px-6 py-4">
                     <h2 className="text-lg font-bold">Gestión de Cursos</h2>
                     <Button
-                      color="primary"
-                      variant="flat"
                       size="sm"
                       radius="full"
-                      className="font-semibold bg-gradient-to-r from-pink-500 to-pink-600 text-white"
+                      className="font-semibold px-6 bg-gradient-to-r from-pink-500 to-pink-600 text-white border-0"
                       onPress={openCreate}
                     >
                       + Nuevo Curso
@@ -273,11 +284,9 @@ export default function AdminPage() {
                       <p className="text-4xl mb-3">📚</p>
                       <p className="text-foreground/60">No hay cursos creados todavía</p>
                       <Button
-                        color="primary"
-                        variant="flat"
                         size="sm"
                         radius="full"
-                        className="mt-4 font-semibold bg-gradient-to-r from-pink-500 to-pink-600 text-white"
+                        className="mt-4 font-semibold px-6 bg-gradient-to-r from-pink-500 to-pink-600 text-white border-0"
                         onPress={openCreate}
                       >
                         Crear el primer curso
@@ -406,6 +415,64 @@ export default function AdminPage() {
                             </TableCell>
                             <TableCell className="text-foreground/70">
                               {new Date(enrollment.createdAt).toLocaleDateString('es-AR')}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </CardBody>
+              </Card>
+            </Tab>
+
+            {/* Inquiries Tab */}
+            <Tab
+              key="inquiries"
+              title={
+                <div className="flex items-center gap-2">
+                  <span>✉️</span>
+                  <span>Consultas</span>
+                  <Chip size="sm" variant="flat" color={inquiries.filter(i => !i.read).length > 0 ? 'danger' : 'default'}>
+                    {inquiries.filter(i => !i.read).length > 0 ? inquiries.filter(i => !i.read).length : inquiries.length}
+                  </Chip>
+                </div>
+              }
+            >
+              <Card className="glass border border-default-100 mt-6">
+                <CardBody className="p-0">
+                  <div className="px-6 py-4">
+                    <h2 className="text-lg font-bold">Consultas Recibidas</h2>
+                  </div>
+                  <Divider />
+                  {inquiries.length === 0 ? (
+                    <div className="text-center py-16">
+                      <p className="text-4xl mb-3">✉️</p>
+                      <p className="text-foreground/60">No hay consultas todavía</p>
+                    </div>
+                  ) : (
+                    <Table aria-label="Consultas" removeWrapper>
+                      <TableHeader>
+                        <TableColumn>NOMBRE</TableColumn>
+                        <TableColumn>EMAIL</TableColumn>
+                        <TableColumn>MENSAJE</TableColumn>
+                        <TableColumn>FECHA</TableColumn>
+                        <TableColumn>ESTADO</TableColumn>
+                      </TableHeader>
+                      <TableBody>
+                        {inquiries.map((inquiry) => (
+                          <TableRow key={inquiry.id}>
+                            <TableCell className="font-medium">{inquiry.name}</TableCell>
+                            <TableCell className="text-foreground/70">{inquiry.email}</TableCell>
+                            <TableCell className="max-w-xs">
+                              <p className="truncate text-foreground/80">{inquiry.message}</p>
+                            </TableCell>
+                            <TableCell className="text-foreground/70">
+                              {new Date(inquiry.createdAt).toLocaleDateString('es-AR')}
+                            </TableCell>
+                            <TableCell>
+                              <Chip size="sm" variant="flat" color={inquiry.read ? 'default' : 'warning'}>
+                                {inquiry.read ? 'Leído' : 'Nuevo'}
+                              </Chip>
                             </TableCell>
                           </TableRow>
                         ))}
@@ -616,11 +683,9 @@ export default function AdminPage() {
               </Button>
               <Button
                 type="submit"
-                color="primary"
-                variant="flat"
                 radius="full"
                 isLoading={formik.isSubmitting}
-                className="font-semibold bg-gradient-to-r from-pink-500 to-pink-600 text-white"
+                className="font-semibold px-6 bg-gradient-to-r from-pink-500 to-pink-600 text-white border-0"
               >
                 {editingCourse ? 'Guardar Cambios' : 'Crear Curso'}
               </Button>

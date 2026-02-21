@@ -66,9 +66,9 @@ const button = (text: string, href: string) => `
 // 1. Bienvenida - Creación de cuenta
 // ─────────────────────────────────────────────────────
 export function welcomeEmail(userName: string) {
-    return {
-        subject: '¡Bienvenido/a a Alma & Expresión! 💃',
-        html: baseLayout(`
+  return {
+    subject: '¡Bienvenido/a a Alma & Expresión! 💃',
+    html: baseLayout(`
       <h2 style="margin:0 0 16px; color:#fff; font-size:22px;">¡Hola ${userName}! 🎉</h2>
       <p style="color:#ccc; font-size:15px; line-height:1.7; margin:0 0 16px;">
         Tu cuenta en <strong style="color:#ec4899;">Alma & Expresión</strong> fue creada exitosamente.
@@ -87,17 +87,17 @@ export function welcomeEmail(userName: string) {
         Si no creaste esta cuenta, podés ignorar este email.
       </p>
     `),
-    };
+  };
 }
 
 // ─────────────────────────────────────────────────────
 // 2. Recuperación de contraseña
 // ─────────────────────────────────────────────────────
 export function passwordRecoveryEmail(userName: string, resetToken: string) {
-    const resetUrl = `${process.env.NEXTAUTH_URL}/restablecer-password?token=${resetToken}`;
-    return {
-        subject: 'Restablecer contraseña - Alma & Expresión',
-        html: baseLayout(`
+  const resetUrl = `${process.env.NEXTAUTH_URL}/restablecer-password?token=${resetToken}`;
+  return {
+    subject: 'Restablecer contraseña - Alma & Expresión',
+    html: baseLayout(`
       <h2 style="margin:0 0 16px; color:#fff; font-size:22px;">Hola ${userName}</h2>
       <p style="color:#ccc; font-size:15px; line-height:1.7; margin:0 0 16px;">
         Recibimos una solicitud para restablecer tu contraseña. Hacé click en el botón de abajo para crear una nueva:
@@ -110,21 +110,21 @@ export function passwordRecoveryEmail(userName: string, resetToken: string) {
         Si no solicitaste restablecer tu contraseña, ignorá este email. Tu cuenta sigue segura.
       </p>
     `),
-    };
+  };
 }
 
 // ─────────────────────────────────────────────────────
 // 3. Confirmación de inscripción
 // ─────────────────────────────────────────────────────
 export function enrollmentConfirmationEmail(
-    userName: string,
-    courseName: string,
-    schedule: string,
-    instructorName: string
+  userName: string,
+  courseName: string,
+  schedule: string,
+  instructorName: string
 ) {
-    return {
-        subject: `¡Inscripción confirmada! ${courseName} 🎶`,
-        html: baseLayout(`
+  return {
+    subject: `¡Inscripción confirmada! ${courseName} 🎶`,
+    html: baseLayout(`
       <h2 style="margin:0 0 16px; color:#fff; font-size:22px;">¡Felicitaciones ${userName}! 🎉</h2>
       <p style="color:#ccc; font-size:15px; line-height:1.7; margin:0 0 20px;">
         Tu inscripción fue registrada exitosamente. Acá van los detalles:
@@ -154,20 +154,20 @@ export function enrollmentConfirmationEmail(
         Recordá realizar el pago para confirmar tu lugar.
       </p>
     `),
-    };
+  };
 }
 
 // ─────────────────────────────────────────────────────
 // 4. Pago confirmado
 // ─────────────────────────────────────────────────────
 export function paymentConfirmationEmail(
-    userName: string,
-    courseName: string,
-    amount: number
+  userName: string,
+  courseName: string,
+  amount: number
 ) {
-    return {
-        subject: `Pago confirmado - $${amount.toLocaleString('es-AR')} ✅`,
-        html: baseLayout(`
+  return {
+    subject: `Pago confirmado - $${amount.toLocaleString('es-AR')} ✅`,
+    html: baseLayout(`
       <h2 style="margin:0 0 16px; color:#fff; font-size:22px;">¡Pago recibido! ✅</h2>
       <p style="color:#ccc; font-size:15px; line-height:1.7; margin:0 0 20px;">
         Hola ${userName}, tu pago fue procesado correctamente.
@@ -191,20 +191,20 @@ export function paymentConfirmationEmail(
       </p>
       ${button('Ir a Mi Panel', `${process.env.NEXTAUTH_URL}/dashboard`)}
     `),
-    };
+  };
 }
 
 // ─────────────────────────────────────────────────────
 // 5. Recordatorio de pago
 // ─────────────────────────────────────────────────────
 export function paymentReminderEmail(
-    userName: string,
-    courseName: string,
-    amount: number
+  userName: string,
+  courseName: string,
+  amount: number
 ) {
-    return {
-        subject: `Recordatorio de pago - ${courseName} 💳`,
-        html: baseLayout(`
+  return {
+    subject: `Recordatorio de pago - ${courseName} 💳`,
+    html: baseLayout(`
       <h2 style="margin:0 0 16px; color:#fff; font-size:22px;">Hola ${userName} 👋</h2>
       <p style="color:#ccc; font-size:15px; line-height:1.7; margin:0 0 16px;">
         Te recordamos que tenés un pago pendiente para continuar con tu clase:
@@ -228,21 +228,21 @@ export function paymentReminderEmail(
         Si ya realizaste el pago, podés ignorar este mensaje.
       </p>
     `),
-    };
+  };
 }
 
 // ─────────────────────────────────────────────────────
 // 6. Recordatorio de cursado
 // ─────────────────────────────────────────────────────
 export function classReminderEmail(
-    userName: string,
-    courseName: string,
-    schedule: string,
-    dayOfWeek: string
+  userName: string,
+  courseName: string,
+  schedule: string,
+  dayOfWeek: string
 ) {
-    return {
-        subject: `¡Hoy tenés clase! ${courseName} 💃`,
-        html: baseLayout(`
+  return {
+    subject: `¡Hoy tenés clase! ${courseName} 💃`,
+    html: baseLayout(`
       <h2 style="margin:0 0 16px; color:#fff; font-size:22px;">¡Hola ${userName}! 🎵</h2>
       <p style="color:#ccc; font-size:15px; line-height:1.7; margin:0 0 20px;">
         Te recordamos que hoy <strong style="color:#ec4899;">${dayOfWeek}</strong> tenés clase:
@@ -265,5 +265,28 @@ export function classReminderEmail(
         ¡Preparate para disfrutar del ritmo! 🔥
       </p>
     `),
-    };
+  };
+}
+
+// ─────────────────────────────────────────────────────
+// 7. Confirmación de consulta de contacto
+// ─────────────────────────────────────────────────────
+export function contactConfirmationEmail(userName: string) {
+  return {
+    subject: 'Recibimos tu consulta - Alma & Expresión ✉️',
+    html: baseLayout(`
+      <h2 style="margin:0 0 16px; color:#fff; font-size:22px;">¡Hola ${userName}! 👋</h2>
+      <p style="color:#ccc; font-size:15px; line-height:1.7; margin:0 0 16px;">
+        Recibimos tu consulta y te responderemos a la brevedad.
+        Nuestro equipo se pondrá en contacto con vos pronto.
+      </p>
+      <p style="color:#ccc; font-size:15px; line-height:1.7; margin:0 0 16px;">
+        Si tu consulta es urgente, también podés contactarnos por Instagram:
+      </p>
+      ${button('Ver nuestro Instagram', 'https://www.instagram.com/almaexpresion')}
+      <p style="color:#888; font-size:13px; margin:0;">
+        Gracias por comunicarte con Alma & Expresión 💃
+      </p>
+    `),
+  };
 }

@@ -100,6 +100,15 @@ model Payment {
   updatedAt        DateTime      @updatedAt
 }
 
+model ContactInquiry {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  email     String
+  message   String
+  read      Boolean @default(false)
+  createdAt DateTime @default(now())
+}
+
 enum UserRole {
   STUDENT
   INSTRUCTOR

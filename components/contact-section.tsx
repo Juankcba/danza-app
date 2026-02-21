@@ -10,17 +10,25 @@ export function ContactSection() {
     validationSchema: contactSchema,
     onSubmit: async (values, { resetForm, setSubmitting }) => {
       try {
-        console.log('Contact form:', values);
-        addToast({
-          title: '¡Mensaje enviado!',
-          description: 'Nos pondremos en contacto pronto.',
-          color: 'success',
+        const res = await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(values),
         });
-        resetForm();
+        if (res.ok) {
+          addToast({
+            title: '¡Mensaje enviado!',
+            description: 'Te enviamos un email de confirmación. Nos pondremos en contacto pronto.',
+            color: 'success',
+          });
+          resetForm();
+        } else {
+          throw new Error();
+        }
       } catch {
         addToast({
           title: 'Error',
-          description: 'No se pudo enviar el mensaje.',
+          description: 'No se pudo enviar el mensaje. Intentá de nuevo.',
           color: 'danger',
         });
       } finally {
