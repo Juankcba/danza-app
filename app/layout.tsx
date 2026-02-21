@@ -6,7 +6,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://almayexpresion.com'),
+  metadataBase: new URL('https://www.almaexpresion.com'),
   title: {
     default: 'Alma & Expresión - Escuela de Danzas y Ritmos Caribeños',
     template: '%s | Alma & Expresión',
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'es_AR',
-    url: 'https://almayexpresion.com',
+    url: 'https://www.almaexpresion.com',
     siteName: 'Alma & Expresión',
     title: 'Alma & Expresión - Escuela de Danzas y Ritmos Caribeños',
     description:
@@ -74,7 +74,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: 'https://almayexpresion.com',
+    canonical: 'https://www.almaexpresion.com',
   },
 };
 

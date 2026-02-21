@@ -85,7 +85,7 @@ export function Header() {
               <Avatar
                 isBordered
                 as="button"
-                className="transition-transform"
+                className="transition-transform w-8 h-8"
                 color="primary"
                 name={session.user.name || ''}
                 size="sm"
