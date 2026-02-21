@@ -50,7 +50,7 @@ export function ContactSection() {
             <div className="glass rounded-xl p-6 border border-default-100">
               <h3 className="text-lg font-bold mb-3">📍 Ubicación</h3>
               <p className="text-foreground/70">
-                San Miguel de Tucumán, Argentina
+                Arguello, Argentina
               </p>
             </div>
             <div className="glass rounded-xl p-6 border border-default-100">
@@ -96,8 +96,8 @@ export function ContactSection() {
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                   className={`w-full px-4 py-3 rounded-xl bg-default-100/50 border text-foreground placeholder:text-foreground/40 outline-none transition-colors focus:border-primary ${formik.touched.name && formik.errors.name
-                      ? 'border-danger'
-                      : 'border-default-200'
+                    ? 'border-danger'
+                    : 'border-default-200'
                     }`}
                 />
                 {formik.touched.name && formik.errors.name && (
@@ -124,8 +124,8 @@ export function ContactSection() {
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                   className={`w-full px-4 py-3 rounded-xl bg-default-100/50 border text-foreground placeholder:text-foreground/40 outline-none transition-colors focus:border-primary ${formik.touched.email && formik.errors.email
-                      ? 'border-danger'
-                      : 'border-default-200'
+                    ? 'border-danger'
+                    : 'border-default-200'
                     }`}
                 />
                 {formik.touched.email && formik.errors.email && (
@@ -152,8 +152,8 @@ export function ContactSection() {
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                   className={`w-full px-4 py-3 rounded-xl bg-default-100/50 border text-foreground placeholder:text-foreground/40 outline-none transition-colors focus:border-primary resize-none ${formik.touched.message && formik.errors.message
-                      ? 'border-danger'
-                      : 'border-default-200'
+                    ? 'border-danger'
+                    : 'border-default-200'
                     }`}
                 />
                 {formik.touched.message && formik.errors.message && (
