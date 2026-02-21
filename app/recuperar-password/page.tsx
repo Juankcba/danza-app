@@ -50,7 +50,7 @@ export default function RecuperarPasswordPage() {
                 Si el email existe en nuestra base de datos, vas a recibir un
                 enlace para restablecer tu contraseña.
               </p>
-              <Button as={Link} href="/login" color="primary" variant="flat" radius="full">
+              <Button as={Link} href="/login" color="primary" variant="flat" size="lg" radius="full">
                 Volver al Login
               </Button>
             </div>
@@ -72,8 +72,8 @@ export default function RecuperarPasswordPage() {
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                   className={`w-full px-4 py-3 rounded-xl bg-default-100/50 border text-foreground placeholder:text-foreground/40 outline-none transition-colors focus:border-primary ${formik.touched.email && formik.errors.email
-                      ? 'border-danger'
-                      : 'border-default-200'
+                    ? 'border-danger'
+                    : 'border-default-200'
                     }`}
                 />
                 {formik.touched.email && formik.errors.email && (
@@ -87,6 +87,7 @@ export default function RecuperarPasswordPage() {
                 type="submit"
                 color="primary"
                 variant="flat"
+                size="lg"
                 fullWidth
                 radius="full"
                 isLoading={formik.isSubmitting}

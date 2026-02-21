@@ -174,6 +174,7 @@ export function ContactSection() {
               <Button
                 type="submit"
                 color="primary"
+                size="lg"
                 fullWidth
                 radius="full"
                 isLoading={formik.isSubmitting}

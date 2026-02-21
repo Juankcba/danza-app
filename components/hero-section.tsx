@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Link } from '@heroui/react';
+import { Button } from '@heroui/react';
 import Image from 'next/image';
 
 export function HeroSection() {
@@ -49,24 +49,19 @@ export function HeroSection() {
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button
-            as={Link}
-            href="#cursos"
-            color="primary"
-            variant="flat"
             size="lg"
             radius="full"
+            onPress={() => document.getElementById('cursos')?.scrollIntoView({ behavior: 'smooth' })}
             className="font-bold text-base px-10 bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/25 hover:shadow-pink-500/40 transition-shadow"
           >
             🔥 Ver Cursos
           </Button>
           <Button
-            as={Link}
-            href="#contacto"
-            variant="ghost"
-            color="primary"
             size="lg"
             radius="full"
-            className="font-semibold text-base px-10"
+            variant="bordered"
+            onPress={() => document.getElementById('contacto')?.scrollIntoView({ behavior: 'smooth' })}
+            className="font-semibold text-base px-10 border-pink-500/50 text-foreground hover:bg-pink-500/10 transition-colors"
           >
             Contactanos
           </Button>

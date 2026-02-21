@@ -10,6 +10,8 @@ import {
   Chip,
   Progress,
 } from '@heroui/react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { EnrollmentDialog } from './enrollment-dialog';
 
 interface Course {
@@ -42,6 +44,8 @@ export function CoursesSection() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const { data: session } = useSession();
+  const router = useRouter();
 
   useEffect(() => {
     fetch('/api/courses')
@@ -143,10 +147,16 @@ export function CoursesSection() {
                   <Button
                     fullWidth
                     isDisabled={course._count.enrollments >= course.capacity}
-                    onPress={() => setSelectedCourse(course)}
-                    className={`font-bold text-white text-base py-6 rounded-xl transition-all ${course._count.enrollments >= course.capacity
-                        ? 'bg-default-300 text-default-500'
-                        : 'bg-gradient-to-r from-pink-500 to-pink-600 shadow-lg shadow-pink-500/25 hover:shadow-pink-500/40 hover:scale-[1.02] active:scale-[0.98]'
+                    onPress={() => {
+                      if (!session?.user) {
+                        router.push('/login');
+                      } else {
+                        setSelectedCourse(course);
+                      }
+                    }}
+                    className={`font-bold text-white text-base rounded-xl transition-all ${course._count.enrollments >= course.capacity
+                      ? 'bg-default-300 text-default-500'
+                      : 'bg-gradient-to-r from-pink-500 to-pink-600 shadow-lg shadow-pink-500/25 hover:shadow-pink-500/40 hover:scale-[1.02] active:scale-[0.98]'
                       }`}
                   >
                     {course._count.enrollments >= course.capacity

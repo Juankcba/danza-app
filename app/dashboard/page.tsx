@@ -165,13 +165,14 @@ function DashboardContent() {
                 <p className="text-foreground/60 mb-6 max-w-md mx-auto">
                   Explorá nuestros cursos de salsa, bachata y más. Encontrá el ritmo que te mueva.
                 </p>
-                <button
-                  type="button"
-                  onClick={() => router.push('/#cursos')}
-                  className="text-base font-bold px-10 py-3.5 rounded-full bg-linear-to-r from-pink-500 to-pink-600 text-white hover:opacity-90 transition-all hover:scale-105 shadow-lg shadow-pink-500/25 cursor-pointer"
+                <Button
+                  radius="full"
+                  size="lg"
+                  onPress={() => router.push('/#cursos')}
+                  className="font-bold text-base text-white bg-gradient-to-r from-pink-500 to-pink-600 shadow-lg shadow-pink-500/25 hover:opacity-90 hover:scale-105 transition-all"
                 >
                   🎶 Inscribirme a un curso
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -180,13 +181,13 @@ function DashboardContent() {
           <Card className="glass border border-default-100">
             <CardHeader className="flex justify-between items-center px-6 pt-6">
               <h2 className="text-xl font-bold">Mis Inscripciones</h2>
-              <button
-                type="button"
-                onClick={() => router.push('/#cursos')}
-                className="text-sm font-semibold px-5 py-2 rounded-full bg-linear-to-r from-pink-500 to-pink-600 text-white hover:opacity-90 transition-opacity cursor-pointer"
+              <Button
+                radius="full"
+                onPress={() => router.push('/#cursos')}
+                className="font-semibold text-white bg-gradient-to-r from-pink-500 to-pink-600 hover:opacity-90 transition-opacity"
               >
                 Ver Cursos
-              </button>
+              </Button>
             </CardHeader>
             <CardBody>
               {loading ? (
@@ -198,13 +199,13 @@ function DashboardContent() {
                   <p className="text-foreground/50 text-lg mb-4">
                     No tenés inscripciones todavía
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => router.push('/#cursos')}
-                    className="text-sm font-semibold px-8 py-2.5 rounded-full bg-linear-to-r from-pink-500 to-pink-600 text-white hover:opacity-90 transition-opacity cursor-pointer"
+                  <Button
+                    radius="full"
+                    onPress={() => router.push('/#cursos')}
+                    className="font-semibold text-white bg-gradient-to-r from-pink-500 to-pink-600 hover:opacity-90 transition-opacity"
                   >
                     Explorar Cursos
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <Table
@@ -285,7 +286,7 @@ function DashboardContent() {
                         <TableCell>
                           {enrollment.status === 'PENDING' && !enrollment.payments?.some(p => p.status === 'APPROVED') && (
                             <Button
-                              size="sm"
+                              size="md"
                               radius="full"
                               className="font-semibold text-white bg-gradient-to-r from-pink-500 to-pink-600 shadow-md shadow-pink-500/20 hover:shadow-pink-500/40 transition-all"
                               onPress={async () => {

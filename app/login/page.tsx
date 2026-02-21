@@ -112,6 +112,7 @@ export default function LoginPage() {
               type="submit"
               color="primary"
               variant="flat"
+              size="lg"
               fullWidth
               radius="full"
               isLoading={formik.isSubmitting}
@@ -125,6 +126,7 @@ export default function LoginPage() {
 
           <Button
             variant="bordered"
+            size="lg"
             fullWidth
             radius="full"
             className="border-default-200"

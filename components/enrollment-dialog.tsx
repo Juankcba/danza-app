@@ -91,7 +91,8 @@ export function EnrollmentDialog({ course, isOpen, onClose }: EnrollmentDialogPr
       size="md"
       placement="center"
       classNames={{
-        backdrop: 'bg-black/70 backdrop-blur-sm',
+        wrapper: 'z-[9999]',
+        backdrop: 'bg-black/70 backdrop-blur-sm z-[9998]',
         base: 'border border-default-100 bg-content1 shadow-2xl',
         header: 'border-b border-default-100',
         footer: 'border-t border-default-100',
