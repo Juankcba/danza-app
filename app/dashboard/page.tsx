@@ -268,6 +268,56 @@ function DashboardContent() {
             </CardBody>
           </Card>
         </div>
+
+        {/* Delete account */}
+        <div className="mt-12 pt-8 border-t border-default-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-danger">Eliminar cuenta</h3>
+              <p className="text-xs text-foreground/50 mt-1">
+                Se eliminarán todos tus datos, inscripciones y pagos de forma permanente.
+              </p>
+            </div>
+            <Button
+              color="danger"
+              variant="flat"
+              size="sm"
+              radius="full"
+              onPress={async () => {
+                const confirmed = window.confirm(
+                  '¿Estás seguro/a? Esta acción no se puede deshacer. Se eliminarán todos tus datos.'
+                );
+                if (!confirmed) return;
+                try {
+                  const res = await fetch('/api/account', { method: 'DELETE' });
+                  if (res.ok) {
+                    addToast({
+                      title: 'Cuenta eliminada',
+                      description: 'Tu cuenta fue eliminada exitosamente.',
+                      color: 'success',
+                    });
+                    const { signOut } = await import('next-auth/react');
+                    signOut({ callbackUrl: '/' });
+                  } else {
+                    addToast({
+                      title: 'Error',
+                      description: 'No se pudo eliminar la cuenta.',
+                      color: 'danger',
+                    });
+                  }
+                } catch {
+                  addToast({
+                    title: 'Error',
+                    description: 'Error al conectar con el servidor.',
+                    color: 'danger',
+                  });
+                }
+              }}
+            >
+              Eliminar mi cuenta
+            </Button>
+          </div>
+        </div>
       </main>
       <Footer />
     </div>
