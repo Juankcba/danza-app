@@ -55,7 +55,7 @@ interface Enrollment {
   createdAt: string;
   user: { name: string; email: string };
   course: { name: string };
-  payment?: { amount: number; status: string };
+  payments: { amount: number; status: string }[];
 }
 
 interface Instructor {
@@ -447,13 +447,24 @@ export default function AdminPage() {
                             </TableCell>
                             <TableCell>
                               <div className="flex justify-center">
-                                {enrollment.payment ? (
+                                {enrollment.payments?.length > 0 ? (
                                   <Chip
                                     size="sm"
                                     variant="flat"
-                                    color={enrollment.payment.status === 'APPROVED' ? 'success' : 'warning'}
+                                    color={
+                                      enrollment.payments.some(p => p.status === 'APPROVED')
+                                        ? 'success'
+                                        : enrollment.payments[0].status === 'REJECTED'
+                                          ? 'danger'
+                                          : 'warning'
+                                    }
                                   >
-                                    ${enrollment.payment.amount.toLocaleString('es-AR')}
+                                    {enrollment.payments.some(p => p.status === 'APPROVED')
+                                      ? `✅ $${enrollment.payments[0].amount.toLocaleString('es-AR')}`
+                                      : enrollment.payments[0].status === 'REJECTED'
+                                        ? '❌ Rechazado'
+                                        : `⏳ $${enrollment.payments[0].amount.toLocaleString('es-AR')}`
+                                    }
                                   </Chip>
                                 ) : (
                                   <span className="text-foreground/40 text-sm">Sin pago</span>
