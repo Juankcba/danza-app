@@ -1,3 +1,5 @@
+'use client';
+
 import { Link, Divider } from '@heroui/react';
 
 export function Footer() {
