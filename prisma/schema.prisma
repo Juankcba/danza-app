@@ -1,0 +1,130 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  email          String       @unique
+  emailVerified  DateTime?
+  hashedPassword String?
+  image          String?
+  phone          String?
+  role           UserRole     @default(STUDENT)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  accounts       Account[]
+  enrollments    Enrollment[]
+  payments       Payment[]
+}
+
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Course {
+  id           String       @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  description  String
+  level        CourseLevel
+  duration     String
+  schedule     String
+  price        Float
+  image        String?
+  capacity     Int
+  active       Boolean      @default(true)
+  instructorId String       @db.ObjectId
+  instructor   Instructor   @relation(fields: [instructorId], references: [id])
+  enrollments  Enrollment[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+model Instructor {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  specialty String
+  bio       String
+  image     String?
+  courses   Course[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Enrollment {
+  id        String           @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String           @db.ObjectId
+  courseId   String           @db.ObjectId
+  status    EnrollmentStatus @default(PENDING)
+  user      User             @relation(fields: [userId], references: [id])
+  course    Course           @relation(fields: [courseId], references: [id])
+  payment   Payment?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model Payment {
+  id               String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId           String        @db.ObjectId
+  enrollmentId     String?       @unique @db.ObjectId
+  type             PaymentType
+  amount           Float
+  currency         String        @default("ARS")
+  status           PaymentStatus @default(PENDING)
+  mpPaymentId      String?
+  mpPreferenceId   String?
+  mpSubscriptionId String?
+  user             User          @relation(fields: [userId], references: [id])
+  enrollment       Enrollment?   @relation(fields: [enrollmentId], references: [id])
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+
+enum UserRole {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+}
+
+enum CourseLevel {
+  PRINCIPIANTE
+  INTERMEDIO
+  AVANZADO
+}
+
+enum EnrollmentStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentType {
+  CLASS
+  MONTHLY
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REFUNDED
+}

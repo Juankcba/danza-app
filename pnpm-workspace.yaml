@@ -1,0 +1,5 @@
+ignoredBuiltDependencies:
+  - '@heroui/shared-utils'
+  - '@prisma/engines'
+  - prisma
+  - sharp
