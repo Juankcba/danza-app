@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useFormik } from 'formik';
 import {
     Card,
@@ -36,7 +36,22 @@ const selectClass =
 export default function NuevoCursoPage() {
     const { data: session, status } = useSession();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const editId = searchParams.get('edit');
+    const isEdit = !!editId;
+
     const [instructors, setInstructors] = useState<Instructor[]>([]);
+    const [initialValues, setInitialValues] = useState({
+        name: '',
+        description: '',
+        level: 'PRINCIPIANTE',
+        duration: '',
+        schedule: '',
+        price: 0,
+        capacity: 15,
+        instructorId: '',
+    });
+    const [loadingCourse, setLoadingCourse] = useState(isEdit);
 
     useEffect(() => {
         if (status === 'unauthenticated') {
@@ -55,22 +70,41 @@ export default function NuevoCursoPage() {
             .catch(console.error);
     }, []);
 
+    // Fetch course data when editing
+    useEffect(() => {
+        if (editId) {
+            fetch(`/api/courses/${editId}`)
+                .then((res) => res.json())
+                .then((course) => {
+                    if (course && !course.error) {
+                        setInitialValues({
+                            name: course.name || '',
+                            description: course.description || '',
+                            level: course.level || 'PRINCIPIANTE',
+                            duration: course.duration || '',
+                            schedule: course.schedule || '',
+                            price: course.price || 0,
+                            capacity: course.capacity || 15,
+                            instructorId: course.instructorId || course.instructor?.id || '',
+                        });
+                    }
+                })
+                .catch(console.error)
+                .finally(() => setLoadingCourse(false));
+        }
+    }, [editId]);
+
     const formik = useFormik({
-        initialValues: {
-            name: '',
-            description: '',
-            level: 'PRINCIPIANTE',
-            duration: '',
-            schedule: '',
-            price: 0,
-            capacity: 15,
-            instructorId: '',
-        },
+        enableReinitialize: true,
+        initialValues,
         validationSchema: courseSchema,
         onSubmit: async (values, { setSubmitting }) => {
             try {
-                const res = await fetch('/api/courses', {
-                    method: 'POST',
+                const url = isEdit ? `/api/courses/${editId}` : '/api/courses';
+                const method = isEdit ? 'PUT' : 'POST';
+
+                const res = await fetch(url, {
+                    method,
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         ...values,
@@ -81,7 +115,7 @@ export default function NuevoCursoPage() {
 
                 if (res.ok) {
                     addToast({
-                        title: '¡Curso creado exitosamente!',
+                        title: isEdit ? '¡Curso actualizado!' : '¡Curso creado exitosamente!',
                         color: 'success',
                     });
                     router.push('/admin');
@@ -89,7 +123,7 @@ export default function NuevoCursoPage() {
                     const data = await res.json();
                     addToast({
                         title: 'Error',
-                        description: data.error || 'No se pudo crear el curso',
+                        description: data.error || 'No se pudo guardar el curso',
                         color: 'danger',
                     });
                 }
@@ -101,7 +135,7 @@ export default function NuevoCursoPage() {
         },
     });
 
-    if (status === 'loading') {
+    if (status === 'loading' || loadingCourse) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <Spinner size="lg" color="secondary" />
@@ -124,9 +158,11 @@ export default function NuevoCursoPage() {
 
                 <Card className="glass border border-default-100">
                     <CardBody className="p-8">
-                        <h1 className="text-2xl font-bold mb-2">Nuevo Curso</h1>
+                        <h1 className="text-2xl font-bold mb-2">
+                            {isEdit ? 'Editar Curso' : 'Nuevo Curso'}
+                        </h1>
                         <p className="text-foreground/60 text-sm mb-6">
-                            Completá los datos para crear un nuevo curso
+                            {isEdit ? 'Modificá los datos del curso' : 'Completá los datos para crear un nuevo curso'}
                         </p>
                         <Divider className="mb-6" />
 
@@ -308,7 +344,10 @@ export default function NuevoCursoPage() {
                                     disabled={formik.isSubmitting}
                                     className="text-sm font-semibold px-8 py-2.5 rounded-full bg-linear-to-r from-pink-500 to-pink-600 text-white hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50"
                                 >
-                                    {formik.isSubmitting ? 'Creando...' : 'Crear Curso'}
+                                    {formik.isSubmitting
+                                        ? (isEdit ? 'Guardando...' : 'Creando...')
+                                        : (isEdit ? 'Guardar Cambios' : 'Crear Curso')
+                                    }
                                 </button>
                             </div>
                         </form>

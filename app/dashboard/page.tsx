@@ -150,18 +150,40 @@ function DashboardContent() {
             </Card>
           </div>
 
+          {/* Enrollment CTA Banner */}
+          {activeCount === 0 && (
+            <div className="relative overflow-hidden rounded-2xl bg-linear-to-r from-pink-500/10 to-purple-500/10 border border-pink-500/20 p-8 text-center">
+              <div className="absolute inset-0 bg-linear-to-r from-pink-500/5 to-purple-500/5 animate-pulse" />
+              <div className="relative z-10">
+                <p className="text-4xl mb-3">💃</p>
+                <h3 className="text-2xl font-bold mb-2">
+                  ¡Empezá a <span className="gradient-text">bailar</span> hoy!
+                </h3>
+                <p className="text-foreground/60 mb-6 max-w-md mx-auto">
+                  Explorá nuestros cursos de salsa, bachata y más. Encontrá el ritmo que te mueva.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => router.push('/#cursos')}
+                  className="text-base font-bold px-10 py-3.5 rounded-full bg-linear-to-r from-pink-500 to-pink-600 text-white hover:opacity-90 transition-all hover:scale-105 shadow-lg shadow-pink-500/25 cursor-pointer"
+                >
+                  🎶 Inscribirme a un curso
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Enrollments table */}
           <Card className="glass border border-default-100">
             <CardHeader className="flex justify-between items-center px-6 pt-6">
               <h2 className="text-xl font-bold">Mis Inscripciones</h2>
-              <Button
-                color="primary"
-                variant="flat"
-                size="sm"
-                onPress={() => router.push('/#cursos')}
+              <button
+                type="button"
+                onClick={() => router.push('/#cursos')}
+                className="text-sm font-semibold px-5 py-2 rounded-full bg-linear-to-r from-pink-500 to-pink-600 text-white hover:opacity-90 transition-opacity cursor-pointer"
               >
                 Ver Cursos
-              </Button>
+              </button>
             </CardHeader>
             <CardBody>
               {loading ? (
@@ -173,13 +195,13 @@ function DashboardContent() {
                   <p className="text-foreground/50 text-lg mb-4">
                     No tenés inscripciones todavía
                   </p>
-                  <Button
-                    color="primary"
-                    variant="shadow"
-                    onPress={() => router.push('/#cursos')}
+                  <button
+                    type="button"
+                    onClick={() => router.push('/#cursos')}
+                    className="text-sm font-semibold px-8 py-2.5 rounded-full bg-linear-to-r from-pink-500 to-pink-600 text-white hover:opacity-90 transition-opacity cursor-pointer"
                   >
                     Explorar Cursos
-                  </Button>
+                  </button>
                 </div>
               ) : (
                 <Table aria-label="Mis inscripciones" removeWrapper>
